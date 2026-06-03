@@ -1,0 +1,13 @@
+# Artefatos de runtime do spike
+spike/*.log
+spike/MODE
+spike/APP_DECISION
+
+# macOS
+.DS_Store
+
+# Swift / Xcode (quando o app começar)
+.build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
