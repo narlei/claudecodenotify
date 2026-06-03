@@ -6,8 +6,19 @@ spike/APP_DECISION
 # macOS
 .DS_Store
 
-# Swift / Xcode (quando o app começar)
+# Swift / Xcode
 .build/
 DerivedData/
 *.xcuserstate
 xcuserdata/
+*.xcodeproj
+*.xcworkspace
+
+# Build do app
+*.app
+dist/
+
+# Tuist (fallback de build)
+.tuist/
+Tuist/Dependencies/
+Derived/
