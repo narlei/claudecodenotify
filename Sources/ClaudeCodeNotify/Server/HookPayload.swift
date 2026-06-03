@@ -68,6 +68,11 @@ enum JSONValue: Decodable {
         else { self = .null }
     }
 
+    var stringValue: String? {
+        if case .string(let s) = self { return s }
+        return nil
+    }
+
     var displayString: String {
         switch self {
         case .string(let s): return s

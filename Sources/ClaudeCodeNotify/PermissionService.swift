@@ -49,29 +49,28 @@ final class PermissionService {
     // MARK: - Decisão
 
     private func decide(_ payload: HookPayload, respond: @escaping (Decision, String) -> Void) {
-        // bypassPermissions: o usuário já optou por não ser perguntado → defer.
-        if payload.permissionMode == "bypassPermissions" {
-            respond(.defer, "bypassPermissions -> defer")
-            return
-        }
-        // Ferramenta não gerenciada → defer (motor nativo decide).
-        guard ToolPolicy.isManaged(payload.toolName) else {
-            respond(.defer, "ferramenta não gerenciada -> defer")
-            return
-        }
-
         let request = PermissionRequest(payload: payload)
         // Log discreto: sem o comando/conteúdo (evita vazar dado sensível no log do sistema).
         NSLog("ClaudeCodeNotify: recebido tool=\(request.toolName) proj=\(request.projectName) id=\(request.id)")
 
-        // Allowlist própria: casa → allow na hora, sem card (medir latência — risco #2).
+        // Allowlist própria ("não perguntar de novo"): casa → allow na hora, sem card.
         if allowlist.matches(request) {
             NSLog("ClaudeCodeNotify: decisão=allow (allowlist) id=\(request.id)")
             respond(.allow, "ClaudeCodeNotify: liberado pela allowlist")
             return
         }
 
-        // Gerenciada e não liberada: enfileira e mostra o card.
+        // Espelha o Claude: só mostramos card quando ELE perguntaria. Caso contrário, defer
+        // (o motor nativo segue). Se errarmos pro lado "não pergunta", cai no prompt nativo
+        // (nunca libera silencioso).
+        let permissions = ClaudePermissions.load(cwd: request.cwd)
+        guard ToolPolicy.wouldAsk(request, permissions: permissions) else {
+            NSLog("ClaudeCodeNotify: defer (Claude não perguntaria) tool=\(request.toolName) id=\(request.id)")
+            respond(.defer, "ClaudeCodeNotify: Claude não perguntaria -> defer")
+            return
+        }
+
+        // O Claude perguntaria → enfileira e mostra o card.
         NSLog("ClaudeCodeNotify: card id=\(request.id)")
         queue.enqueue(request) { [weak self] decision in
             switch decision {
