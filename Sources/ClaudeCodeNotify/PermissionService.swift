@@ -61,26 +61,29 @@ final class PermissionService {
         }
 
         let request = PermissionRequest(payload: payload)
-        NSLog("ClaudeCodeNotify: RECEBIDO tool=\(request.toolName) cmd=\(request.command ?? "-") cwd=\(request.cwd ?? "-") id=\(request.id)")
+        // Log discreto: sem o comando/conteúdo (evita vazar dado sensível no log do sistema).
+        NSLog("ClaudeCodeNotify: recebido tool=\(request.toolName) proj=\(request.projectName) id=\(request.id)")
 
         // Allowlist própria: casa → allow na hora, sem card (medir latência — risco #2).
         if allowlist.matches(request) {
-            NSLog("ClaudeCodeNotify: DECISÃO allow (allowlist) id=\(request.id)")
+            NSLog("ClaudeCodeNotify: decisão=allow (allowlist) id=\(request.id)")
             respond(.allow, "ClaudeCodeNotify: liberado pela allowlist")
             return
         }
 
         // Gerenciada e não liberada: enfileira e mostra o card.
-        NSLog("ClaudeCodeNotify: CARD mostrado id=\(request.id)")
+        NSLog("ClaudeCodeNotify: card id=\(request.id)")
         queue.enqueue(request) { [weak self] decision in
-            NSLog("ClaudeCodeNotify: DECISÃO \(decision) id=\(request.id)")
             switch decision {
             case .allow:
+                NSLog("ClaudeCodeNotify: decisão=allow id=\(request.id)")
                 respond(.allow, "ClaudeCodeNotify: usuário aprovou")
             case .allowAlways(let pattern):
+                NSLog("ClaudeCodeNotify: decisão=allow+allowlist id=\(request.id)")
                 self?.allowlist.add(pattern)
                 respond(.allow, "ClaudeCodeNotify: aprovado e adicionado à allowlist (\(pattern))")
             case .deny(let reason):
+                NSLog("ClaudeCodeNotify: decisão=deny id=\(request.id)")
                 let msg = reason.isEmpty ? "ClaudeCodeNotify: usuário negou" : reason
                 respond(.deny, msg)
             }

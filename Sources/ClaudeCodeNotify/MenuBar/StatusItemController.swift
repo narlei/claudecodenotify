@@ -5,7 +5,6 @@ import AppKit
 @MainActor
 final class StatusItemController: NSObject {
     private let statusItem: NSStatusItem
-    private let panelController = PanelController()
     private let token: String
 
     private var queueCount = 0
@@ -60,8 +59,6 @@ final class StatusItemController: NSObject {
         login.state = LoginItem.isEnabled ? .on : .off
 
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Mostrar card de teste", action: #selector(showTestCard), keyEquivalent: "").target = self
-        menu.addItem(.separator())
         menu.addItem(withTitle: "Sair", action: #selector(quit), keyEquivalent: "q").target = self
     }
 
@@ -88,13 +85,6 @@ final class StatusItemController: NSObject {
             notify("Falha ao desconectar", "\(error)")
         }
         rebuildMenu()
-    }
-
-    @objc private func showTestCard() {
-        panelController.show(
-            title: "Permissão pedida pelo Claude Code",
-            subtitle: "Bash · echo TESTE  (card de teste)"
-        ) { _ in }
     }
 
     @objc private func quit() {

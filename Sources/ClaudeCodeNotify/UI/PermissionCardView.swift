@@ -120,7 +120,6 @@ struct PermissionCardView: View {
             } label: {
                 Text(showDenyReason ? "Confirmar Deny" : "Deny").frame(maxWidth: .infinity)
             }
-            .keyboardShortcut(.cancelAction)
 
             Button {
                 if showPatternEditor {
@@ -140,7 +139,6 @@ struct PermissionCardView: View {
             } label: {
                 Text("Allow").frame(maxWidth: .infinity)
             }
-            .keyboardShortcut(.defaultAction)
             .buttonStyle(.borderedProminent)
         }
         .controlSize(.large)

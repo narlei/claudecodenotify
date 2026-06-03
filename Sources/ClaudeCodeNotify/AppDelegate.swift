@@ -20,10 +20,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         service.start()
         self.service = service
         self.statusItem = statusItem
-
-        if CommandLine.arguments.contains("--spike") {
-            SpikeFocusTest.run()
-        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

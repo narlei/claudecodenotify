@@ -5,6 +5,7 @@ APP_NAME := ClaudeCodeNotify
 APP := $(APP_NAME).app
 DIST := dist
 CONFIG ?= release
+VERSION := $(shell /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist 2>/dev/null)
 
 .DEFAULT_GOAL := build
 
@@ -29,11 +30,12 @@ run: ## Compila e roda em modo dev (sem bundle)
 app: ## Monta o $(APP) (Info.plist + ad-hoc sign)
 	./Scripts/build-app.sh $(CONFIG)
 
-zip: app ## Empacota o $(APP) em $(DIST)/$(APP_NAME).zip
+zip: app ## Empacota o $(APP) em $(DIST)/$(APP_NAME)-$(VERSION).zip (GitHub Releases)
 	@mkdir -p $(DIST)
-	@rm -f $(DIST)/$(APP_NAME).zip
-	@cd . && ditto -c -k --keepParent $(APP) $(DIST)/$(APP_NAME).zip
-	@echo "==> $(DIST)/$(APP_NAME).zip"
+	@rm -f $(DIST)/$(APP_NAME)-*.zip
+	@ditto -c -k --keepParent $(APP) "$(DIST)/$(APP_NAME)-$(VERSION).zip"
+	@codesign --verify --verbose "$(APP)" 2>&1 | tail -1
+	@echo "==> $(DIST)/$(APP_NAME)-$(VERSION).zip"
 
 install: app ## Monta e abre o app (use o menu para "Conectar Claude Code")
 	open $(APP)

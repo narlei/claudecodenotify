@@ -42,15 +42,14 @@ if let idx = CommandLine.arguments.firstIndex(of: "--render-card") {
     MainActor.assumeIsolated { CardRenderer.render(to: out) }
     exit(0)
 }
+if let idx = CommandLine.arguments.firstIndex(of: "--render-icon") {
+    let out = CommandLine.arguments.indices.contains(idx + 1) ? CommandLine.arguments[idx + 1] : "/tmp/ccn-icon.png"
+    MainActor.assumeIsolated { IconRenderer.render(to: out) }
+    exit(0)
+}
 
 let app = NSApplication.shared
-// CCN_REGULAR=1 força .regular (app normal no Dock) — usado só pra testes/diagnóstico
-// onde ferramentas externas precisam enxergar o app. Em produção fica .accessory.
-if ProcessInfo.processInfo.environment["CCN_REGULAR"] == "1" {
-    app.setActivationPolicy(.regular)
-} else {
-    app.setActivationPolicy(.accessory)
-}
+app.setActivationPolicy(.accessory) // menu bar, sem Dock (reforça o LSUIElement do Info.plist)
 
 let delegate = AppDelegate()
 app.delegate = delegate
