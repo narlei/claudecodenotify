@@ -11,11 +11,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSLog("ClaudeCodeNotify: falha ao criar diretório de suporte: \(error)")
         }
 
-        let config = Config.loadOrCreate()
+        var config = Config.loadOrCreate()
         let service = NotificationService(config: config)
         service.start()
         self.service = service
         self.statusItem = StatusItemController(token: config.token)
+
+        // Primeiro launch → tela de boas-vindas.
+        if !config.onboardingShown {
+            OnboardingWindowController.shared.show(token: config.token)
+            config.markOnboardingShown()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

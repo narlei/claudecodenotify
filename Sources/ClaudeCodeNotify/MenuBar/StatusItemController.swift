@@ -12,8 +12,11 @@ final class StatusItemController: NSObject {
         super.init()
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "bell", accessibilityDescription: "ClaudeCodeNotify")
+            // Glifo monocromático (template) no padrão dos ícones nativos da menu bar.
+            button.image = IconRenderer.menuBarImage()
+                ?? NSImage(systemSymbolName: "bell", accessibilityDescription: "ClaudeCodeNotify")
             button.image?.isTemplate = true
+            button.image?.accessibilityDescription = "ClaudeCodeNotify"
         }
 
         let menu = NSMenu()
@@ -30,6 +33,7 @@ final class StatusItemController: NSObject {
         let header = menu.addItem(withTitle: connected ? "Claude Code: connected" : "Claude Code: disconnected",
                                   action: nil, keyEquivalent: "")
         header.isEnabled = false
+        header.image = statusDot(connected ? .systemGreen : .systemRed)
 
         menu.addItem(.separator())
         if connected {
@@ -39,6 +43,7 @@ final class StatusItemController: NSObject {
         }
 
         menu.addItem(.separator())
+        menu.addItem(withTitle: "Welcome…", action: #selector(openWelcome), keyEquivalent: "").target = self
         menu.addItem(withTitle: "Preferences…", action: #selector(openPreferences), keyEquivalent: ",").target = self
         let login = menu.addItem(withTitle: "Open at Login", action: #selector(toggleLogin), keyEquivalent: "")
         login.target = self
@@ -46,6 +51,20 @@ final class StatusItemController: NSObject {
 
         menu.addItem(.separator())
         menu.addItem(withTitle: "Quit", action: #selector(quit), keyEquivalent: "q").target = self
+    }
+
+    /// Bolinha colorida de status pro item do menu (verde = conectado, vermelho = não).
+    private func statusDot(_ color: NSColor) -> NSImage? {
+        let cfg = NSImage.SymbolConfiguration(pointSize: 10, weight: .bold)
+            .applying(NSImage.SymbolConfiguration(paletteColors: [color]))
+        let img = NSImage(systemSymbolName: "circle.fill", accessibilityDescription: nil)?
+            .withSymbolConfiguration(cfg)
+        img?.isTemplate = false
+        return img
+    }
+
+    @objc private func openWelcome() {
+        OnboardingWindowController.shared.show(token: token)
     }
 
     @objc private func openPreferences() {

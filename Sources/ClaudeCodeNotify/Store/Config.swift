@@ -1,10 +1,24 @@
 import Foundation
 
-/// Configuração persistida em config.json: token secreto (gerado uma vez) + flag de seed
-/// da allowlist. A porta NÃO fica aqui (é efêmera; vai no portFile a cada launch).
+/// Configuração persistida em config.json: token secreto (gerado uma vez) + flag de
+/// onboarding. A porta NÃO fica aqui (é efêmera; vai no portFile a cada launch).
 struct Config: Codable {
     var token: String
-    var allowlistSeeded: Bool
+    var onboardingShown: Bool
+
+    init(token: String, onboardingShown: Bool = false) {
+        self.token = token
+        self.onboardingShown = onboardingShown
+    }
+
+    enum CodingKeys: String, CodingKey { case token, onboardingShown }
+
+    // Decode resiliente: campos novos ausentes em config.json antigo não regeneram o token.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        token = try c.decode(String.self, forKey: .token)
+        onboardingShown = (try? c.decode(Bool.self, forKey: .onboardingShown)) ?? false
+    }
 
     /// Carrega do disco; se não existir, gera um token novo e grava.
     static func loadOrCreate() -> Config {
@@ -13,7 +27,7 @@ struct Config: Codable {
            let cfg = try? JSONDecoder().decode(Config.self, from: data) {
             return cfg
         }
-        let cfg = Config(token: Self.generateToken(), allowlistSeeded: false)
+        let cfg = Config(token: Self.generateToken())
         cfg.save()
         return cfg
     }
@@ -25,6 +39,12 @@ struct Config: Codable {
         // config tem o token — restringe a 600.
         try? FileManager.default.setAttributes([.posixPermissions: 0o600],
                                                ofItemAtPath: AppPaths.configFile.path)
+    }
+
+    /// Marca o onboarding como visto e persiste.
+    mutating func markOnboardingShown() {
+        onboardingShown = true
+        save()
     }
 
     /// 32 bytes aleatórios em base64url (sem padding) — seguro e shell-friendly.

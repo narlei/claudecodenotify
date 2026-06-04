@@ -1,0 +1,114 @@
+import SwiftUI
+
+/// Tela de boas-vindas (primeiro launch). Explica o app e deixa conectar/configurar já aqui.
+struct OnboardingView: View {
+    let token: String
+    let onClose: () -> Void
+
+    @State private var connected = HookInstaller.isInstalled
+    @State private var loginEnabled = LoginItem.isEnabled
+
+    var body: some View {
+        VStack(spacing: 0) {
+            header
+            Divider()
+            features
+            Divider()
+            actions
+        }
+        .frame(width: 480)
+    }
+
+    // MARK: - Header
+
+    private var header: some View {
+        VStack(spacing: 10) {
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable().frame(width: 84, height: 84)
+            Text("Welcome to ClaudeCodeNotify")
+                .font(.title2.bold())
+            Text("Desktop notifications when Claude Code needs you — and one keystroke back to your terminal.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 28)
+        .padding(.top, 28)
+        .padding(.bottom, 20)
+    }
+
+    // MARK: - Features
+
+    private var features: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            feature("bell.badge.fill", .orange, "Get notified",
+                    "A floating notification appears when Claude asks for permission, goes idle waiting for input, or finishes a task.")
+            feature("return", .blue, "Jump back instantly",
+                    "Press Enter on a notification and it brings the terminal where Claude is running (Ghostty, iTerm, Terminal, Cursor…) to the front.")
+            feature("menubar.arrow.up.rectangle", .purple, "Lives in your menu bar",
+                    "Look for the bell icon at the top-right. Click it for Connect/Disconnect, Preferences and Open at Login.")
+            feature("slider.horizontal.3", .green, "Make it yours",
+                    "Set how long each notification stays and which sound it plays (or none) in Preferences.")
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 22)
+    }
+
+    private func feature(_ icon: String, _ color: Color, _ title: String, _ desc: String) -> some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 22))
+                .foregroundStyle(color)
+                .frame(width: 30)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.headline)
+                Text(desc).font(.subheadline).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    // MARK: - Actions
+
+    private var actions: some View {
+        VStack(spacing: 14) {
+            Button {
+                if !connected {
+                    try? HookInstaller.install(token: token)
+                    connected = HookInstaller.isInstalled
+                }
+            } label: {
+                Label(connected ? "Claude Code connected" : "Connect Claude Code",
+                      systemImage: connected ? "checkmark.circle.fill" : "link")
+                    .frame(maxWidth: .infinity)
+            }
+            .controlSize(.large)
+            .buttonStyle(.borderedProminent)
+            .tint(connected ? .green : .accentColor)
+            .disabled(connected)
+
+            Text(connected
+                 ? "Hooks installed in ~/.claude/settings.json (a backup was created)."
+                 : "Installs the hooks so Claude Code can notify this app. Reversible anytime from the menu.")
+                .font(.caption).foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack {
+                Toggle("Open at login", isOn: $loginEnabled)
+                    .toggleStyle(.switch)
+                    .onChange(of: loginEnabled) { newValue in LoginItem.setEnabled(newValue) }
+                Spacer()
+                Button("Open Preferences…") { PreferencesWindowController.shared.show() }
+            }
+
+            Button("Get Started", action: onClose)
+                .controlSize(.large)
+                .keyboardShortcut(.defaultAction)
+                .frame(maxWidth: .infinity)
+        }
+        .padding(28)
+    }
+}

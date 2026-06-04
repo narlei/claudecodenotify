@@ -109,6 +109,37 @@ enum IconRenderer {
         print("rendered \(path)")
     }
 
+    /// Glifo do motivo (sino + spark), sem fundo — base do ícone de menu bar (template).
+    static func menuBarGlyph(pt: CGFloat) -> some View {
+        ZStack {
+            Image(systemName: "bell.fill")
+                .font(.system(size: pt * 0.78, weight: .semibold))
+                .offset(x: -pt * 0.05, y: pt * 0.02)
+            Image(systemName: "sparkle")
+                .font(.system(size: pt * 0.40, weight: .bold))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+        }
+        .frame(width: pt, height: pt)
+    }
+
+    /// Imagem template (preto + alpha) pro NSStatusItem — o sistema pinta de branco/preto.
+    static func menuBarImage(pt: CGFloat = 18) -> NSImage? {
+        let view = menuBarGlyph(pt: pt).foregroundStyle(.black)
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = 2
+        guard let img = renderer.nsImage else { return nil }
+        img.isTemplate = true
+        return img
+    }
+
+    /// Dev: preview do glifo (branco sobre fundo escuro, simulando a menu bar).
+    static func renderMenuBarPreview(to path: String) {
+        let view = menuBarGlyph(pt: 64).foregroundStyle(.white)
+            .padding(24)
+            .background(Color(white: 0.16))
+        write(view: view, to: path)
+    }
+
     /// Ícone oficial (variante 3): squircle coral + sino branco + sparkle (a "ding" do Claude).
     /// `art` = lado da arte; tudo proporcional pra escalar de 220 (preview) a 1024 (icns).
     static func claudeNotifyIcon(art: CGFloat) -> some View {
