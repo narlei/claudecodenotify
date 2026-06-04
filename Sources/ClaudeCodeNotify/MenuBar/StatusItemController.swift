@@ -50,6 +50,12 @@ final class StatusItemController: NSObject {
         login.target = self
         login.state = LoginItem.isEnabled ? .on : .off
 
+        menu.addItem(.separator())
+        let updateTitle = Updater.shared.hasNewVersion ? "Check for Updates… (New version available!)" : "Check for Updates…"
+        let updateItem = menu.addItem(withTitle: updateTitle, action: #selector(checkUpdates), keyEquivalent: "")
+        updateItem.target = self
+        if Updater.shared.hasNewVersion { updateItem.image = statusDot(.systemBlue) }
+
         if !config.donationHidden {
             menu.addItem(.separator())
             menu.addItem(buildSupportItem())
@@ -113,6 +119,10 @@ final class StatusItemController: NSObject {
         PreferencesWindowController.shared.show()
     }
 
+    @objc private func checkUpdates() {
+        Updater.shared.checkForUpdates(explicit: true)
+    }
+
     @objc private func toggleLogin() {
         LoginItem.setEnabled(!LoginItem.isEnabled)
         rebuildMenu()
@@ -154,6 +164,13 @@ final class StatusItemController: NSObject {
 
 extension StatusItemController: NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
+        Task {
+            let hadUpdate = Updater.shared.hasNewVersion
+            await Updater.shared.silentCheck()
+            if !hadUpdate && Updater.shared.hasNewVersion {
+                await MainActor.run { self.rebuildMenu() }
+            }
+        }
         rebuildMenu() // reflete o estado real do settings.json a cada abertura
     }
 }
