@@ -1,8 +1,25 @@
 <p align="center">
-  <img src="docs/icon.png" width="120" alt="ClaudeCodeNotify icon">
+  <img src="docs/icon.png" width="128" alt="ClaudeCodeNotify icon">
 </p>
 
-# ClaudeCodeNotify
+<h1 align="center">ClaudeCodeNotify</h1>
+
+<p align="center">
+  Desktop notifications when Claude Code needs you —<br>
+  <b>one keystroke back to your terminal.</b>
+</p>
+
+<p align="center">
+  <a href="https://github.com/narlei/claudecodenotify/releases/latest"><img src="https://img.shields.io/github/v/release/narlei/claudecodenotify?color=D9755E&label=release" alt="Latest release"></a>
+  <a href="https://github.com/narlei/claudecodenotify/releases"><img src="https://img.shields.io/github/downloads/narlei/claudecodenotify/total?color=D9755E&label=downloads" alt="Downloads"></a>
+  <img src="https://img.shields.io/badge/macOS-13%2B-262624" alt="macOS 13+">
+  <img src="https://img.shields.io/badge/Apple%20Silicon-arm64-262624" alt="Apple Silicon">
+  <a href="https://claudecodenotify.narlei.com"><img src="https://img.shields.io/badge/website-claudecodenotify.narlei.com-D9755E" alt="Website"></a>
+</p>
+
+<p align="center">
+  <img src="docs/notifications.png" width="520" alt="The three notification types: permission, idle, and finished">
+</p>
 
 A macOS **menu bar** app that pops a **floating notification in the center of your screen** when Claude Code needs you — when it **asks for permission**, is **idle waiting for input**, or **finishes a task**. Press **Enter** (or click) and it jumps you straight to the terminal where Claude is running. Built for people who leave Claude Code working and don't want to babysit the terminal.
 
@@ -12,20 +29,16 @@ A macOS **menu bar** app that pops a **floating notification in the center of yo
   🌐 <a href="https://claudecodenotify.narlei.com"><b>claudecodenotify.narlei.com</b></a>
 </p>
 
-<p align="center">
-  <img src="docs/notifications.png" width="480" alt="The three notification types: permission, idle, and finished">
-</p>
-
 ## Contents
 
 - [How it works](#how-it-works)
 - [Features](#features)
-- [First launch](#first-launch)
+- [Screenshots](#screenshots)
 - [Installation](#installation)
+- [First launch](#first-launch)
 - [Build (development)](#build-development)
 - [Distribution](#distribution)
 - [Support](#support)
-- [Background](#background)
 
 ## How it works
 
@@ -42,25 +55,34 @@ When shown, the notification appears centered at the top, over anything (includi
 
 ## Features
 
-- **Three event types**, each shown with its own icon/color:
+- **🔔 Three event types**, each with its own icon and color:
   - 🟠 Claude needs permission
   - 🟡 Claude is idle (waiting for input)
   - 🟢 Claude finished the task (shows a short summary)
-- **Enter → jump to the terminal** (Ghostty, iTerm, Terminal, VS Code, WezTerm, …), detected via `$TERM_PROGRAM`.
-- **Preferences** (menu → Preferences…): choose card/sound behavior while Claude's terminal or editor is focused, plus per-type **duration** (0 = stays until you dismiss it) and **sound** (system sounds or None, with preview).
-- **Open at Login** via `SMAppService`.
-- Local & private: the server listens only on `127.0.0.1` and validates a token.
+- **↵ Enter → jump to the terminal** — detects the host app (Ghostty, iTerm, Terminal, Cursor, VS Code, WezTerm, …) via `$TERM_PROGRAM` and brings it to the front.
+- **🎚️ Make it yours** — per-type **duration** (`0` = stays until dismissed) and **sound** (system sounds or none, with preview); plus how the card/sound behaves while Claude's terminal or editor is already focused.
+- **📊 Lives in your menu bar** — a bell icon with a green/red connection dot; connect or disconnect anytime. No Dock icon.
+- **🔒 Local & private** — a tiny server listening only on `127.0.0.1`, validated with a token. Nothing leaves your machine.
+- **🚀 Open at Login** via `SMAppService`.
 
-## First launch
+## Screenshots
 
-On first launch a **welcome screen** explains how it works and lets you **Connect Claude Code**, toggle **Open at Login**, and open **Preferences** right away. Reopen it anytime from the menu (**Welcome…**).
-
-Everything lives in the **menu bar** (the bell icon). The menu shows a **green/red dot** for the connection status, plus Connect/Disconnect, Welcome, Preferences, and Open at Login.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/onboarding.png" alt="Welcome / onboarding window"><br>
+      <sub><b>Onboarding</b> — walks you through setup and confirms the connection.</sub>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/preferences.png" alt="Preferences window"><br>
+      <sub><b>Preferences</b> — tune display time and sound for each notification type.</sub>
+    </td>
+  </tr>
+</table>
 
 <p align="center">
-  <img src="docs/onboarding.png" width="300" alt="Welcome / onboarding window">
-  &nbsp;&nbsp;
-  <img src="docs/menu.png" width="240" alt="Menu bar menu with connection status dot">
+  <img src="docs/menu.png" width="280" alt="Menu bar menu with connection status dot"><br>
+  <sub><b>Menu bar</b> — connection status, preferences, and check for updates.</sub>
 </p>
 
 ## Installation
@@ -70,6 +92,7 @@ Requires **macOS 13+** on **Apple Silicon**.
 ### Option 1: Homebrew (Recommended)
 
 The easiest way to install and avoid Gatekeeper (quarantine) warnings:
+
 ```bash
 brew install narlei/tap/claudecodenotify
 ```
@@ -85,6 +108,12 @@ brew install narlei/tap/claudecodenotify
 5. Optional: **Open at Login** to start it with your system.
 
 To stop it: **Disconnect Claude Code** in the menu.
+
+## First launch
+
+On first launch a **welcome screen** explains how it works and lets you **Connect Claude Code**, toggle **Open at Login**, and open **Preferences** right away. Reopen it anytime from the menu (**Welcome…**).
+
+Everything lives in the **menu bar** (the bell icon). The menu shows a **green/red dot** for the connection status, plus Connect/Disconnect, Welcome, Preferences, Check for Updates, and Open at Login.
 
 > The app generates a token on first run and writes `bridge.sh` to `~/.ccnotify/`; its store (token, port, preferences) lives in `~/Library/Application Support/ClaudeCodeNotify/`. Everything is local and only listens on `127.0.0.1`.
 
@@ -118,6 +147,12 @@ If ClaudeCodeNotify saves you trips to the terminal, consider buying me a coffee
 
 You can also support it from the app: menu bar → **Support ClaudeCodeNotify ☕**.
 
-## Background
+---
 
-- [`SPEC.md`](SPEC.md) and [`spike/`](spike/) document the original exploration and the end-to-end validation of the Claude Code hook integration (the spike proved the hook → `bridge.sh` → local HTTP round-trip without any Swift). The shipped app evolved from a permission-gating design into the notifier described above.
+<p align="center">
+  Made by <a href="https://narlei.com"><b>Narlei Moreira</b></a> · for people who let Claude Code cook.<br>
+  <a href="https://github.com/narlei">GitHub</a> ·
+  <a href="https://www.linkedin.com/in/narlei/">LinkedIn</a> ·
+  <a href="https://x.com/narleimoreira">X</a> ·
+  <a href="https://www.instagram.com/narleimoreira/">Instagram</a>
+</p>
