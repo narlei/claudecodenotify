@@ -12,6 +12,7 @@ final class NotificationService {
     private var panel: NotificationPanel?
     private var previousApp: NSRunningApplication?
     private var currentEvent: NotificationEvent?
+    private var currentHostApp: NSRunningApplication?
     private var keyMonitor: Any?
     private var clickMonitor: Any?
     private var dismissTask: Task<Void, Never>?
@@ -21,9 +22,9 @@ final class NotificationService {
     init(config: Config) { self.config = config }
 
     func start() {
-        let server = LocalHTTPServer(token: config.token) { [weak self] body, term in
+        let server = LocalHTTPServer(token: config.token) { [weak self] body, term, pids in
             guard let payload = NotificationPayload.decode(from: body),
-                  let event = NotificationEvent(payload: payload, termProgram: term) else { return }
+                  let event = NotificationEvent(payload: payload, termProgram: term, hostPIDs: pids) else { return }
             Task { @MainActor in self?.present(event) }
         }
         server.onReady = { port in
@@ -46,9 +47,13 @@ final class NotificationService {
         previousApp = NSWorkspace.shared.frontmostApplication
         currentEvent = event
 
+        // Resolve o app host (Ghostty/iTerm/Cursor/...) já agora, enquanto está vivo.
+        let hostApp = TerminalActivator.resolveHost(pids: event.hostPIDs, termProgram: event.termProgram) ?? previousApp
+        currentHostApp = hostApp
+
         let pref = Preferences.load().pref(for: event.kind)
 
-        let hosting = NSHostingView(rootView: NotificationView(event: event))
+        let hosting = NSHostingView(rootView: NotificationView(event: event, hostAppName: hostApp?.localizedName))
         hosting.frame = NSRect(origin: .zero, size: hosting.fittingSize)
         let panel = NotificationPanel(contentView: hosting)
         panel.positionTopCenter()
@@ -64,7 +69,7 @@ final class NotificationService {
     }
 
     private func goToTerminal() {
-        TerminalActivator.activate(termProgram: currentEvent?.termProgram, fallback: previousApp)
+        TerminalActivator.activate(currentHostApp)
         teardownPanel(restoreFocus: false) // o terminal já foi ativado
     }
 
@@ -113,6 +118,7 @@ final class NotificationService {
         panel?.orderOut(nil)
         panel = nil
         currentEvent = nil
+        currentHostApp = nil
         if restoreFocus { previousApp?.activate(options: [.activateIgnoringOtherApps]) }
     }
 

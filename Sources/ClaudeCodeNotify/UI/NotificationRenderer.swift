@@ -6,19 +6,22 @@ import SwiftUI
 @MainActor
 enum NotificationRenderer {
     static func render(to path: String) {
-        let samples = [
-            sample(event: "Notification", type: "permission_prompt", msg: "Claude needs your permission", last: nil),
-            sample(event: "Notification", type: "idle_prompt", msg: "Claude is waiting for your input", last: nil),
-            sample(event: "Stop", type: nil, msg: nil, last: "Done — production deploy complete")
-        ].compactMap { $0 }
+        let samples: [(NotificationEvent, String)] = [
+            (sample(event: "Notification", type: "permission_prompt", msg: "Claude needs your permission", last: nil), "Ghostty"),
+            (sample(event: "Notification", type: "idle_prompt", msg: "Claude is waiting for your input", last: nil), "Cursor"),
+            (sample(event: "Stop", type: nil, msg: nil, last: "Done — refactored the auth module, added retries, and the full test suite is green."), "iTerm2")
+        ].compactMap { ev, host in ev.map { ($0, host) } }
 
         let stack = VStack(spacing: 16) {
-            ForEach(Array(samples.enumerated()), id: \.offset) { _, ev in
-                NotificationView(event: ev)
+            ForEach(Array(samples.enumerated()), id: \.offset) { _, pair in
+                NotificationView(event: pair.0, hostAppName: pair.1)
             }
         }
-        .padding(24)
-        .background(Color(white: 0.10))
+        .padding(28)
+        .background(
+            LinearGradient(colors: [Color(white: 0.13), Color(white: 0.07)],
+                           startPoint: .top, endPoint: .bottom)
+        )
 
         let renderer = ImageRenderer(content: stack)
         renderer.scale = 2
@@ -36,6 +39,6 @@ enum NotificationRenderer {
         if let last { dict["last_assistant_message"] = last }
         guard let data = try? JSONSerialization.data(withJSONObject: dict),
               let payload = NotificationPayload.decode(from: data) else { return nil }
-        return NotificationEvent(payload: payload, termProgram: "ghostty")
+        return NotificationEvent(payload: payload, termProgram: "ghostty", hostPIDs: [])
     }
 }

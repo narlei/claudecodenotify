@@ -5,8 +5,8 @@ import Network
 /// X-CCNotify-Token e recebe `POST /notify` (o bridge.sh manda o payload do hook). Responde
 /// 200 na hora — NÃO bloqueia nada (o app é só um notificador).
 final class LocalHTTPServer {
-    /// payload (body do hook) + valor de TERM_PROGRAM (header).
-    typealias NotifyHandler = (_ body: Data, _ termProgram: String?) -> Void
+    /// payload (body do hook) + TERM_PROGRAM + cadeia de PIDs ancestrais (do bridge).
+    typealias NotifyHandler = (_ body: Data, _ termProgram: String?, _ hostPIDs: [Int32]) -> Void
 
     private let token: String
     private let handler: NotifyHandler
@@ -78,7 +78,10 @@ final class LocalHTTPServer {
             send(conn, status: "403 Forbidden"); return
         }
         let term = req.headers["x-ccnotify-term"]
-        handler(req.body, term)
+        let pids = (req.headers["x-ccnotify-pids"] ?? "")
+            .split(separator: ",")
+            .compactMap { Int32($0.trimmingCharacters(in: .whitespaces)) }
+        handler(req.body, term, pids)
         send(conn, status: "200 OK") // fire-and-forget: responde já
     }
 

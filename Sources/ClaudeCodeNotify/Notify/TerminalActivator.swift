@@ -1,9 +1,11 @@
 import AppKit
 
-/// Traz pra frente o terminal onde o Claude está rodando. Usa $TERM_PROGRAM (vindo do bridge)
-/// pra achar o app; se não reconhecer, cai no app que estava em foco quando a notificação chegou.
+/// Descobre o app GUI onde o Claude está rodando (Ghostty, iTerm, Terminal, Cursor, VS Code…)
+/// e o traz pra frente. Estratégia principal: a cadeia de PIDs ancestrais do bridge — o
+/// primeiro ancestral que é um app "de verdade" (`.regular`) é o host. Isso distingue
+/// Cursor de VS Code e acha a instância exata, sem mapa fixo.
 enum TerminalActivator {
-    /// TERM_PROGRAM → bundle id.
+    /// Fallback por $TERM_PROGRAM, caso a cadeia de PIDs não resolva.
     private static let bundleByTerm: [String: String] = [
         "ghostty": "com.mitchellh.ghostty",
         "iTerm.app": "com.googlecode.iterm2",
@@ -17,15 +19,22 @@ enum TerminalActivator {
         "alacritty": "org.alacritty"
     ]
 
-    static func activate(termProgram: String?, fallback: NSRunningApplication?) {
-        // .activateIgnoringOtherApps é necessário: nosso app está em foco (capturou o teclado),
-        // então sem essa opção o macOS ignora a troca pro terminal.
-        let opts: NSApplication.ActivationOptions = [.activateIgnoringOtherApps]
-        if let term = termProgram, let bundleID = bundleByTerm[term],
-           let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first {
-            app.activate(options: opts)
-            return
+    /// Resolve o app host a partir da cadeia de PIDs (+ fallback por TERM_PROGRAM).
+    static func resolveHost(pids: [Int32], termProgram: String?) -> NSRunningApplication? {
+        for pid in pids {
+            if let app = NSRunningApplication(processIdentifier: pid), app.activationPolicy == .regular {
+                return app
+            }
         }
-        fallback?.activate(options: opts)
+        if let term = termProgram, let bundleID = bundleByTerm[term] {
+            return NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
+        }
+        return nil
+    }
+
+    static func activate(_ app: NSRunningApplication?) {
+        // .activateIgnoringOtherApps: nosso app está em foco (capturou o teclado), então
+        // sem isso o macOS ignora a troca pro terminal.
+        app?.activate(options: [.activateIgnoringOtherApps])
     }
 }

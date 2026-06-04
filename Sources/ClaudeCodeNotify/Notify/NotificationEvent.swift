@@ -16,6 +16,8 @@ struct NotificationEvent {
     let lastAssistantMessage: String? // resumo do Stop
     /// Valor de $TERM_PROGRAM (ex.: "ghostty", "iTerm.app", "Apple_Terminal"), do bridge.
     let termProgram: String?
+    /// Cadeia de PIDs ancestrais do bridge (pra achar o app GUI host e ativá-lo).
+    let hostPIDs: [Int32]
 
     var projectName: String {
         guard let cwd, !cwd.isEmpty else { return "" }
@@ -25,12 +27,13 @@ struct NotificationEvent {
     /// Decide se esse evento merece notificação (filtra tipos irrelevantes).
     var shouldNotify: Bool { kind != .other }
 
-    init?(payload: NotificationPayload, termProgram: String?) {
+    init?(payload: NotificationPayload, termProgram: String?, hostPIDs: [Int32]) {
         self.cwd = payload.cwd
         self.sessionID = payload.sessionID
         self.message = payload.message
         self.lastAssistantMessage = payload.lastAssistantMessage
         self.termProgram = termProgram
+        self.hostPIDs = hostPIDs
 
         switch payload.hookEventName {
         case "Stop":

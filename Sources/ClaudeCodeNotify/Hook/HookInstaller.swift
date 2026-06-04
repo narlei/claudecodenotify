@@ -19,9 +19,19 @@ enum HookInstaller {
     input="$(cat)"
     PORT="$(cat "$PORT_FILE" 2>/dev/null)"
     [ -z "$PORT" ] && exit 0
+    # Sobe a árvore de processos (bridge -> claude -> shell -> app host) enquanto está viva,
+    # e manda os PIDs ancestrais. O app acha qual deles é o app GUI (Ghostty/iTerm/Cursor/...).
+    pids=""; p=$$
+    for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do
+      pp=$(ps -o ppid= -p "$p" 2>/dev/null | tr -d ' ')
+      { [ -z "$pp" ] || [ "$pp" -le 1 ]; } && break
+      pids="$pids,$pp"; p=$pp
+    done
+    pids="${pids#,}"
     printf '%s' "$input" | curl -s --max-time 3 \\
       -H "X-CCNotify-Token: $TOKEN" \\
       -H "X-CCNotify-Term: ${TERM_PROGRAM:-}" \\
+      -H "X-CCNotify-Pids: $pids" \\
       -H "Content-Type: application/json" \\
       --data-binary @- "http://127.0.0.1:$PORT/notify" >/dev/null 2>&1
     exit 0

@@ -1,8 +1,16 @@
+<p align="center">
+  <img src="docs/icon.png" width="120" alt="ClaudeCodeNotify icon">
+</p>
+
 # ClaudeCodeNotify
 
 A macOS **menu bar** app that pops a **floating notification in the center of your screen** when Claude Code needs you — when it **asks for permission**, is **idle waiting for input**, or **finishes a task**. Press **Enter** (or click) and it jumps you straight to the terminal where Claude is running. Built for people who leave Claude Code working and don't want to babysit the terminal.
 
 > **It's a notifier, not a gatekeeper.** It doesn't block tools or decide permissions — you still approve/deny in the terminal. It just makes sure you *notice* and gets you there fast.
+
+<p align="center">
+  <img src="docs/notifications.png" width="480" alt="The three notification types: permission, idle, and finished">
+</p>
 
 ## How it works
 
