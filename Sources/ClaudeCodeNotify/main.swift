@@ -7,9 +7,9 @@ import AppKit
 if CommandLine.arguments.contains("--uninstall") {
     do {
         try HookInstaller.uninstall()
-        print("ClaudeCodeNotify: hook removido do ~/.claude/settings.json (backup criado)")
+        print("ClaudeCodeNotify: hooks removed from ~/.claude/settings.json (backup created)")
     } catch {
-        FileHandle.standardError.write(Data("erro ao desinstalar: \(error)\n".utf8))
+        FileHandle.standardError.write(Data("uninstall error: \(error)\n".utf8))
         exit(1)
     }
     exit(0)
@@ -18,9 +18,9 @@ if CommandLine.arguments.contains("--write-bridge") {
     do {
         let cfg = Config.loadOrCreate()
         let path = try HookInstaller.writeBridgeOnly(token: cfg.token)
-        print(path)  // imprime o caminho do bridge.sh (pra usar num settings.json local)
+        print(path)  // prints the bridge.sh path (for a local settings.json)
     } catch {
-        FileHandle.standardError.write(Data("erro ao escrever bridge: \(error)\n".utf8))
+        FileHandle.standardError.write(Data("write-bridge error: \(error)\n".utf8))
         exit(1)
     }
     exit(0)
@@ -29,17 +29,17 @@ if CommandLine.arguments.contains("--install") {
     do {
         let cfg = Config.loadOrCreate()
         try HookInstaller.install(token: cfg.token)
-        print("ClaudeCodeNotify: hook instalado em ~/.claude/settings.json (matcher: \(ToolPolicy.matcher))")
+        print("ClaudeCodeNotify: hooks installed in ~/.claude/settings.json (\(HookInstaller.managedEvents.joined(separator: ", ")))")
     } catch {
-        FileHandle.standardError.write(Data("erro ao instalar: \(error)\n".utf8))
+        FileHandle.standardError.write(Data("install error: \(error)\n".utf8))
         exit(1)
     }
     exit(0)
 }
 
-if let idx = CommandLine.arguments.firstIndex(of: "--render-card") {
-    let out = CommandLine.arguments.indices.contains(idx + 1) ? CommandLine.arguments[idx + 1] : "/tmp/ccn-card.png"
-    MainActor.assumeIsolated { CardRenderer.render(to: out) }
+if let idx = CommandLine.arguments.firstIndex(of: "--render-notif") {
+    let out = CommandLine.arguments.indices.contains(idx + 1) ? CommandLine.arguments[idx + 1] : "/tmp/ccn-notif.png"
+    MainActor.assumeIsolated { NotificationRenderer.render(to: out) }
     exit(0)
 }
 if let idx = CommandLine.arguments.firstIndex(of: "--render-icon") {

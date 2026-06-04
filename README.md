@@ -1,56 +1,68 @@
 # ClaudeCodeNotify
 
-App de **menu bar** pra macOS que mostra as permissões pedidas pelo Claude Code num **card central na tela** — você aprova ou nega ali mesmo, sem voltar pro terminal. Pensado pra quem deixa o Claude Code rodando e não quer ficar de babá do terminal.
+A macOS **menu bar** app that pops a **floating notification in the center of your screen** when Claude Code needs you — when it **asks for permission**, is **idle waiting for input**, or **finishes a task**. Press **Enter** (or click) and it jumps you straight to the terminal where Claude is running. Built for people who leave Claude Code working and don't want to babysit the terminal.
 
-> **Status:** v1 funcional. App Swift (menu bar) implementado e validado ponta a ponta com
-> `claude -p` real — o card central aparece, o clique decide (Allow/Deny) e o Claude Code honra.
+> **It's a notifier, not a gatekeeper.** It doesn't block tools or decide permissions — you still approve/deny in the terminal. It just makes sure you *notice* and gets you there fast.
 
-## Como funciona (resumão)
+## How it works
 
 ```
 Claude Code (terminal)
-  │  hook PreToolUse (type: command)
+  │  Notification hook (permission / idle)  +  Stop hook (task finished)
   ▼
-bridge.sh  ── POST bloqueante (127.0.0.1 + token) ──►  ClaudeCodeNotify (menu bar, sempre on)
-                                                          │ checa allowlist própria
-                                                          │ se não casa → mostra o card central
-  ◄──────────── decisão (allow/deny/defer) ──────────────┘ (você clica)
+bridge.sh ── POST (127.0.0.1 + token, fire-and-forget) ──►  ClaudeCodeNotify (menu bar, always on)
+                                                              │ shows a floating notification, on top of everything
+  press Enter / click ────────────────────────────────────────┘ → brings the terminal where Claude runs to the front
 ```
 
-O hook bloqueia o Claude Code enquanto o card está aberto — igual ao prompt nativo do terminal, só que numa janela flutuante por cima de tudo. A decisão volta pelo corpo da requisição e o Claude Code segue.
+The notification appears centered at the top, over anything (including fullscreen apps), and captures the keyboard so a single **Enter** takes you to Claude. **Esc**, a click, or the per-type timeout dismisses it. Nothing is blocked — Claude keeps showing its native prompt in the terminal; this just gets you there.
 
-## Instalação (usuário final)
+## Features
 
-Requer **macOS 13+** em **Apple Silicon**.
+- **Three event types**, each shown with its own icon/color:
+  - 🟠 Claude needs permission
+  - 🟡 Claude is idle (waiting for input)
+  - 🟢 Claude finished the task (shows a short summary)
+- **Enter → jump to the terminal** (Ghostty, iTerm, Terminal, VS Code, WezTerm, …), detected via `$TERM_PROGRAM`.
+- **Preferences** (menu → Preferences…): per-type **duration** (0 = stays until you dismiss it) and **sound** (system sounds or None, with preview).
+- **Open at Login** via `SMAppService`.
+- Local & private: the server listens only on `127.0.0.1` and validates a token.
 
-1. Baixe `ClaudeCodeNotify-x.y.z.zip` na [página de Releases](../../releases) e descompacte.
-2. Arraste o `ClaudeCodeNotify.app` para a pasta **Aplicativos**.
-3. **Primeira abertura** — o app é **não-assinado** (sem conta paga Apple), então o macOS bloqueia o duplo-clique. Faça uma vez:
-   - **clique-direito** no app → **Abrir** → **Abrir** no diálogo; ou
-   - pelo terminal: `xattr -dr com.apple.quarantine /Applications/ClaudeCodeNotify.app && open /Applications/ClaudeCodeNotify.app`
-4. Vai aparecer um **ícone de sino** na barra de menu. Clique nele → **Conectar Claude Code** (instala o hook no `~/.claude/settings.json`, com backup automático).
-5. Opcional: **Abrir no login** pra subir junto com o sistema.
+## Install (end users)
 
-Pronto — na próxima vez que o Claude Code pedir pra rodar Bash/Edit/Write, o card aparece no centro da tela. Para desligar: **Desconectar Claude Code** no menu.
+Requires **macOS 13+** on **Apple Silicon**.
 
-> O app gera um token no 1º run e escreve o `bridge.sh` em `~/.ccnotify/`; o store (token, porta, allowlist) fica em `~/Library/Application Support/ClaudeCodeNotify/`. Tudo local, só escuta em `127.0.0.1`.
+1. Download `ClaudeCodeNotify-x.y.z.zip` from the [Releases page](../../releases) and unzip it.
+2. Drag `ClaudeCodeNotify.app` into your **Applications** folder.
+3. **First launch** — the app is **unsigned** (no paid Apple account), so macOS blocks a double-click once. Do it once:
+   - **right-click** the app → **Open** → **Open** in the dialog; or
+   - in a terminal: `xattr -dr com.apple.quarantine /Applications/ClaudeCodeNotify.app && open /Applications/ClaudeCodeNotify.app`
+4. A **bell icon** appears in the menu bar. Click it → **Connect Claude Code** (installs the hooks in `~/.claude/settings.json`, with an automatic backup).
+5. Optional: **Open at Login** to start it with your system.
 
-## Build (desenvolvimento)
+To stop it: **Disconnect Claude Code** in the menu.
 
-Requer Xcode/Swift toolchain. Tudo passa pelo `Makefile`:
+> The app generates a token on first run and writes `bridge.sh` to `~/.ccnotify/`; its store (token, port, preferences) lives in `~/Library/Application Support/ClaudeCodeNotify/`. Everything is local and only listens on `127.0.0.1`.
+
+## Build (development)
+
+Requires the Xcode/Swift toolchain. Everything goes through the `Makefile`:
 
 ```bash
-make build      # compila (swift build)
-make app        # monta o ClaudeCodeNotify.app (Info.plist + ícone + ad-hoc sign)
-make install    # monta e abre o app — depois use o menu "Conectar Claude Code"
-make zip        # empacota em dist/ClaudeCodeNotify-<versão>.zip (GitHub Releases)
-make uninstall  # remove o hook do ~/.claude/settings.json (com backup)
-make help       # lista todos os alvos
+make build      # compile (swift build)
+make app        # assemble ClaudeCodeNotify.app (Info.plist + icon + ad-hoc sign)
+make install    # build and open the app — then use the menu "Connect Claude Code"
+make zip        # package into dist/ClaudeCodeNotify-<version>.zip (for GitHub Releases)
+make uninstall  # remove the hooks from ~/.claude/settings.json (with backup)
+make help       # list all targets
 ```
 
-`Scripts/make-icon.sh` regenera `Resources/AppIcon.icns` quando o ícone muda (versionado no repo).
+`Scripts/make-icon.sh` regenerates `Resources/AppIcon.icns` when the icon changes (it's checked into the repo).
 
-## Documentos
+## Distribution
 
-- [`SPEC.md`](SPEC.md) — todas as decisões de design + resultados da validação.
-- [`spike/`](spike/) — prova de conceito da integração com o hook (reproduzível, sem Swift).
+Unsigned app (no paid Apple account): ad-hoc signed, shipped as a ZIP on GitHub Releases. First launch needs right-click → Open (Gatekeeper). Apple Silicon.
+
+## Background
+
+- [`SPEC.md`](SPEC.md) and [`spike/`](spike/) document the original exploration and the end-to-end validation of the Claude Code hook integration (the spike proved the hook → `bridge.sh` → local HTTP round-trip without any Swift). The shipped app evolved from a permission-gating design into the notifier described above.

@@ -25,8 +25,8 @@ enum AppPaths {
     /// porta efêmera atual; reescrita a cada launch e lida pelo bridge.sh em runtime
     static var portFile: URL { supportDirectory.appendingPathComponent("port") }
 
-    /// allowlist própria
-    static var allowlistFile: URL { supportDirectory.appendingPathComponent("allowlist.json") }
+    /// preferências do usuário (duração + som por tipo de notificação)
+    static var preferencesFile: URL { supportDirectory.appendingPathComponent("preferences.json") }
 
     /// Diretório do bridge.sh. SEM espaço no caminho de propósito: o Claude Code executa o
     /// `command` do hook quebrando em espaços, então "Application Support" (com espaço) falha.

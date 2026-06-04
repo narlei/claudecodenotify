@@ -1,33 +1,28 @@
 import Foundation
 import Network
 
-/// Servidor HTTP local mínimo (espelha o contrato do spike/app_mock.py): escuta só em
-/// 127.0.0.1 numa porta efêmera, valida o header X-CCNotify-Token, recebe o JSON do hook
-/// no body de `POST /decision` e responde o hookSpecificOutput.
-///
-/// O handler de decisão é assíncrono: pode segurar a resposta enquanto o card está aberto
-/// (a requisição do bridge.sh fica bloqueada esperando, exatamente como o terminal nativo).
+/// Servidor HTTP local mínimo: escuta só em 127.0.0.1 numa porta efêmera, valida o header
+/// X-CCNotify-Token e recebe `POST /notify` (o bridge.sh manda o payload do hook). Responde
+/// 200 na hora — NÃO bloqueia nada (o app é só um notificador).
 final class LocalHTTPServer {
-    /// Recebe o payload e um completion; chame o completion (decisão + motivo) pra responder.
-    typealias DecisionHandler = (HookPayload, @escaping (Decision, String) -> Void) -> Void
+    /// payload (body do hook) + valor de TERM_PROGRAM (header).
+    typealias NotifyHandler = (_ body: Data, _ termProgram: String?) -> Void
 
     private let token: String
-    private let handler: DecisionHandler
+    private let handler: NotifyHandler
     private let queue = DispatchQueue(label: "com.narlei.ClaudeCodeNotify.http")
     private var listener: NWListener?
 
-    /// Porta efêmera escolhida pelo SO (0 até o listener ficar pronto).
     private(set) var port: UInt16 = 0
     var onReady: ((UInt16) -> Void)?
 
-    init(token: String, handler: @escaping DecisionHandler) {
+    init(token: String, handler: @escaping NotifyHandler) {
         self.token = token
         self.handler = handler
     }
 
     func start() throws {
         let params = NWParameters.tcp
-        // Bind só no loopback IPv4 + porta efêmera (.any).
         params.requiredLocalEndpoint = .hostPort(host: .ipv4(.loopback), port: .any)
         params.allowLocalEndpointReuse = true
 
@@ -45,9 +40,7 @@ final class LocalHTTPServer {
                 break
             }
         }
-        listener.newConnectionHandler = { [weak self] conn in
-            self?.accept(conn)
-        }
+        listener.newConnectionHandler = { [weak self] conn in self?.accept(conn) }
         listener.start(queue: queue)
         self.listener = listener
     }
@@ -56,8 +49,6 @@ final class LocalHTTPServer {
         listener?.cancel()
         listener = nil
     }
-
-    // MARK: - Conexão
 
     private func accept(_ conn: NWConnection) {
         conn.start(queue: queue)
@@ -69,11 +60,10 @@ final class LocalHTTPServer {
             guard let self else { return }
             var buf = buffer
             if let data { buf.append(data) }
-
             if let req = HTTPRequest(buffer: buf) {
                 self.process(req, on: conn)
             } else if isComplete || error != nil {
-                self.send(conn, status: "400 Bad Request", body: Data("{}".utf8))
+                self.send(conn, status: "400 Bad Request")
             } else {
                 self.receive(conn, buffer: buf)
             }
@@ -81,39 +71,29 @@ final class LocalHTTPServer {
     }
 
     private func process(_ req: HTTPRequest, on conn: NWConnection) {
-        guard req.method == "POST", req.path.hasPrefix("/decision") else {
-            send(conn, status: "404 Not Found", body: Data("{}".utf8))
-            return
+        guard req.method == "POST", req.path.hasPrefix("/notify") else {
+            send(conn, status: "404 Not Found"); return
         }
         guard req.headers["x-ccnotify-token"] == token else {
-            NSLog("ClaudeCodeNotify: token inválido — 403")
-            send(conn, status: "403 Forbidden", body: Data("{}".utf8))
-            return
+            send(conn, status: "403 Forbidden"); return
         }
-        guard let payload = HookPayload.decode(from: req.body) else {
-            // Body ilegível: defer (não trava o Claude Code).
-            send(conn, status: "200 OK", body: Decision.defer.responseJSON(reason: "payload ilegível -> defer"))
-            return
-        }
-
-        handler(payload) { [weak self] decision, reason in
-            self?.send(conn, status: "200 OK", body: decision.responseJSON(reason: reason))
-        }
+        let term = req.headers["x-ccnotify-term"]
+        handler(req.body, term)
+        send(conn, status: "200 OK") // fire-and-forget: responde já
     }
 
-    private func send(_ conn: NWConnection, status: String, body: Data) {
+    private func send(_ conn: NWConnection, status: String) {
+        let body = Data("{}".utf8)
         var head = "HTTP/1.1 \(status)\r\n"
         head += "Content-Type: application/json\r\n"
         head += "Content-Length: \(body.count)\r\n"
         head += "Connection: close\r\n\r\n"
-        var out = Data(head.utf8)
-        out.append(body)
+        var out = Data(head.utf8); out.append(body)
         conn.send(content: out, completion: .contentProcessed { _ in conn.cancel() })
     }
 }
 
-/// Parser HTTP/1.1 mínimo. Retorna nil enquanto a requisição não está completa
-/// (headers + Content-Length bytes de body).
+/// Parser HTTP/1.1 mínimo. nil enquanto a requisição não está completa.
 struct HTTPRequest {
     let method: String
     let path: String
@@ -138,15 +118,14 @@ struct HTTPRequest {
         for line in lines {
             guard let colon = line.firstIndex(of: ":") else { continue }
             let name = line[line.startIndex..<colon].trimmingCharacters(in: .whitespaces).lowercased()
-            let value = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
-            hdrs[name] = value
+            hdrs[name] = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
         }
         headers = hdrs
 
         let contentLength = Int(hdrs["content-length"] ?? "0") ?? 0
         let bodyStart = r.upperBound
         let available = buffer.distance(from: bodyStart, to: buffer.endIndex)
-        guard available >= contentLength else { return nil } // ainda chegando
+        guard available >= contentLength else { return nil }
         body = buffer.subdata(in: bodyStart..<buffer.index(bodyStart, offsetBy: contentLength))
     }
 }

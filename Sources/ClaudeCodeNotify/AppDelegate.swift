@@ -2,7 +2,7 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: StatusItemController?
-    private var service: PermissionService?
+    private var service: NotificationService?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         do {
@@ -12,14 +12,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let config = Config.loadOrCreate()
-        let service = PermissionService(config: config)
-        let statusItem = StatusItemController(token: config.token)
-        service.onQueueCountChange = { [weak statusItem] count in
-            statusItem?.updateBadge(count: count)
-        }
+        let service = NotificationService(config: config)
         service.start()
         self.service = service
-        self.statusItem = statusItem
+        self.statusItem = StatusItemController(token: config.token)
     }
 
     func applicationWillTerminate(_ notification: Notification) {
