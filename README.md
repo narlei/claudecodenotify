@@ -12,6 +12,16 @@ A macOS **menu bar** app that pops a **floating notification in the center of yo
   <img src="docs/notifications.png" width="480" alt="The three notification types: permission, idle, and finished">
 </p>
 
+## Contents
+
+- [How it works](#how-it-works)
+- [Features](#features)
+- [First launch](#first-launch)
+- [Installation](#installation)
+- [Build (development)](#build-development)
+- [Distribution](#distribution)
+- [Background](#background)
+
 ## How it works
 
 ```
@@ -36,7 +46,19 @@ The notification appears centered at the top, over anything (including fullscree
 - **Open at Login** via `SMAppService`.
 - Local & private: the server listens only on `127.0.0.1` and validates a token.
 
-## Install (end users)
+## First launch
+
+On first launch a **welcome screen** explains how it works and lets you **Connect Claude Code**, toggle **Open at Login**, and open **Preferences** right away. Reopen it anytime from the menu (**Welcome…**).
+
+Everything lives in the **menu bar** (the bell icon). The menu shows a **green/red dot** for the connection status, plus Connect/Disconnect, Welcome, Preferences, and Open at Login.
+
+<p align="center">
+  <img src="docs/onboarding.png" width="300" alt="Welcome / onboarding window">
+  &nbsp;&nbsp;
+  <img src="docs/menu.png" width="240" alt="Menu bar menu with connection status dot">
+</p>
+
+## Installation
 
 Requires **macOS 13+** on **Apple Silicon**.
 
