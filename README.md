@@ -82,16 +82,17 @@ Requires the Xcode/Swift toolchain. Everything goes through the `Makefile`:
 make build      # compile (swift build)
 make app        # assemble ClaudeCodeNotify.app (Info.plist + icon + ad-hoc sign)
 make install    # build and open the app — then use the menu "Connect Claude Code"
-make zip        # package into dist/ClaudeCodeNotify-<version>.zip (for GitHub Releases)
+make zip        # package into dist/ClaudeCodeNotify-<version>.zip
+make dmg        # build a drag-to-Applications dist/ClaudeCodeNotify-<version>.dmg
 make uninstall  # remove the hooks from ~/.claude/settings.json (with backup)
 make help       # list all targets
 ```
 
-`Scripts/make-icon.sh` regenerates `Resources/AppIcon.icns` when the icon changes (it's checked into the repo).
+`make dmg` uses [`dmgbuild`](https://pypi.org/project/dmgbuild/) (installed by `make setup`) to build the styled disk image headlessly — no Finder automation needed. `Scripts/make-icon.sh` regenerates `Resources/AppIcon.icns` when the icon changes (it's checked into the repo).
 
 ## Distribution
 
-Unsigned app (no paid Apple account): ad-hoc signed, shipped as a ZIP on GitHub Releases. First launch needs right-click → Open (Gatekeeper). Apple Silicon.
+Unsigned app (no paid Apple account): ad-hoc signed, shipped on GitHub Releases as a drag-to-Applications **`.dmg`** (`make dmg`) or a **`.zip`** (`make zip`). First launch needs right-click → Open (Gatekeeper). Apple Silicon.
 
 ## Background
 

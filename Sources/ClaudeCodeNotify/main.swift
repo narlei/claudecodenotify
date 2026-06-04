@@ -42,6 +42,11 @@ if let idx = CommandLine.arguments.firstIndex(of: "--render-notif") {
     MainActor.assumeIsolated { NotificationRenderer.render(to: out) }
     exit(0)
 }
+if let idx = CommandLine.arguments.firstIndex(of: "--render-dmg-bg") {
+    let out = CommandLine.arguments.indices.contains(idx + 1) ? CommandLine.arguments[idx + 1] : "/tmp/ccn-dmg-bg.png"
+    MainActor.assumeIsolated { IconRenderer.renderDMGBackground(to: out) }
+    exit(0)
+}
 if let idx = CommandLine.arguments.firstIndex(of: "--render-menubar") {
     let out = CommandLine.arguments.indices.contains(idx + 1) ? CommandLine.arguments[idx + 1] : "/tmp/ccn-menubar.png"
     MainActor.assumeIsolated { IconRenderer.renderMenuBarPreview(to: out) }

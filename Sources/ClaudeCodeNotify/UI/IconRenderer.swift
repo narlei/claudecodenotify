@@ -109,6 +109,33 @@ enum IconRenderer {
         print("rendered \(path)")
     }
 
+    /// Fundo do .dmg (660×400): creme + título coral + seta "arraste pro Applications".
+    /// As posições casam com os ícones do create-dmg (app em ~165, Applications em ~495, y~190).
+    static func renderDMGBackground(to path: String) {
+        let w: CGFloat = 660, h: CGFloat = 400
+        let view = ZStack {
+            cream
+            Text("ClaudeCodeNotify")
+                .font(.system(size: 30, weight: .bold)).foregroundStyle(coral)
+                .position(x: w/2, y: 54)
+            Text("Drag the app onto the Applications folder to install")
+                .font(.system(size: 14)).foregroundStyle(.secondary)
+                .position(x: w/2, y: 84)
+            Image(systemName: "arrow.right")
+                .font(.system(size: 56, weight: .semibold)).foregroundStyle(coral)
+                .position(x: w/2, y: 196)
+        }
+        .frame(width: w, height: h)
+
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = 1 // px = pt: casa com a janela do dmgbuild/create-dmg (660×400)
+        guard let image = renderer.nsImage, let tiff = image.tiffRepresentation,
+              let bmp = NSBitmapImageRep(data: tiff),
+              let png = bmp.representation(using: .png, properties: [:]) else { return }
+        try? png.write(to: URL(fileURLWithPath: path))
+        print("dmg background rendered \(path)")
+    }
+
     /// Glifo do motivo (sino + spark), sem fundo — base do ícone de menu bar (template).
     static func menuBarGlyph(pt: CGFloat) -> some View {
         ZStack {

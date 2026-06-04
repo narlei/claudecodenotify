@@ -9,16 +9,19 @@ VERSION := $(shell /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString
 
 .DEFAULT_GOAL := build
 
-.PHONY: setup build run app zip install uninstall clean help
+.PHONY: setup build run app zip dmg install uninstall clean help
 
 help: ## Lista os alvos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-setup: ## Valida toolchain (Swift/Xcode)
+setup: ## Valida toolchain e instala deps (create-dmg) se faltarem
 	@echo "==> verificando toolchain"
 	@swift --version
 	@xcodebuild -version 2>/dev/null | head -1 || true
+	@python3 -c "import dmgbuild" >/dev/null 2>&1 || { \
+		echo "==> instalando dmgbuild (para 'make dmg')"; \
+		python3 -m pip install --user --quiet dmgbuild || echo "   (falhou — pule se não for gerar .dmg)"; }
 	@echo "==> ok"
 
 build: ## Compila (swift build -c $(CONFIG))
@@ -36,6 +39,9 @@ zip: app ## Empacota o $(APP) em $(DIST)/$(APP_NAME)-$(VERSION).zip (GitHub Rele
 	@ditto -c -k --keepParent $(APP) "$(DIST)/$(APP_NAME)-$(VERSION).zip"
 	@codesign --verify --verbose "$(APP)" 2>&1 | tail -1
 	@echo "==> $(DIST)/$(APP_NAME)-$(VERSION).zip"
+
+dmg: app ## Cria o $(DIST)/$(APP_NAME)-$(VERSION).dmg (arraste pro Applications)
+	./Scripts/make-dmg.sh
 
 install: app ## Monta e abre o app (use o menu para "Conectar Claude Code")
 	open $(APP)
