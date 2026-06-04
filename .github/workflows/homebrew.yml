@@ -1,0 +1,64 @@
+name: Update Homebrew Tap
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-tap:
+    runs-on: macos-latest
+    steps:
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Download DMG
+        run: |
+          wget "https://github.com/${{ github.repository }}/releases/download/v${{ steps.get_version.outputs.VERSION }}/ClaudeCodeNotify.dmg" -O ClaudeCodeNotify.dmg
+          
+      - name: Calculate SHA256
+        id: shasum
+        run: |
+          SHA=$(shasum -a 256 ClaudeCodeNotify.dmg | awk '{print $1}')
+          echo "SHA256=$SHA" >> $GITHUB_OUTPUT
+
+      - name: Checkout Tap Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/homebrew-tap
+          token: ${{ secrets.TAP_GITHUB_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update Cask
+        run: |
+          mkdir -p homebrew-tap/Casks
+          cat << 'EOF' > homebrew-tap/Casks/claudecodenotify.rb
+          cask "claudecodenotify" do
+            version "${{ steps.get_version.outputs.VERSION }}"
+            sha256 "${{ steps.shasum.outputs.SHA256 }}"
+
+            url "https://github.com/narlei/claudecodenotify/releases/download/v#{version}/ClaudeCodeNotify.dmg"
+            name "Claude Code Notify"
+            desc "Native macOS notifications for Claude Code"
+            homepage "https://github.com/narlei/claudecodenotify"
+
+            depends_on macos: ">= :ventura"
+
+            app "ClaudeCodeNotify.app"
+
+            caveats do
+              requires_rosetta
+              <<~EOS
+                To complete installation, open ClaudeCodeNotify from Launchpad or Applications
+                and click "Install Hook" in the status bar menu.
+              EOS
+            end
+          end
+          EOF
+          
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/claudecodenotify.rb
+          git commit -m "Update claudecodenotify cask to version ${{ steps.get_version.outputs.VERSION }}" || echo "No changes to commit"
+          git push

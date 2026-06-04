@@ -67,6 +67,15 @@ Everything lives in the **menu bar** (the bell icon). The menu shows a **green/r
 
 Requires **macOS 13+** on **Apple Silicon**.
 
+### Option 1: Homebrew (Recommended)
+
+The easiest way to install and avoid Gatekeeper (quarantine) warnings:
+```bash
+brew install narlei/tap/claudecodenotify
+```
+
+### Option 2: Manual Download
+
 1. Download and open the latest [`ClaudeCodeNotify.dmg`](../../releases/latest/download/ClaudeCodeNotify.dmg).
 2. Drag `ClaudeCodeNotify.app` into your **Applications** folder.
 3. **First launch** — the app is **unsigned** (no paid Apple account), so macOS blocks a double-click once. Do it once:
