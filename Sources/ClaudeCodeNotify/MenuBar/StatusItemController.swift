@@ -4,10 +4,11 @@ import AppKit
 @MainActor
 final class StatusItemController: NSObject {
     private let statusItem: NSStatusItem
-    private let token: String
+    private var config: Config
+    private var token: String { config.token }
 
-    init(token: String) {
-        self.token = token
+    init(config: Config) {
+        self.config = config
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         super.init()
 
@@ -49,8 +50,32 @@ final class StatusItemController: NSObject {
         login.target = self
         login.state = LoginItem.isEnabled ? .on : .off
 
+        if !config.donationHidden {
+            menu.addItem(.separator())
+            menu.addItem(buildSupportItem())
+        }
+
         menu.addItem(.separator())
         menu.addItem(withTitle: "Quit", action: #selector(quit), keyEquivalent: "q").target = self
+    }
+
+    /// Submenu de doação ("pague um café"). Some quando o usuário marca "já doei".
+    private func buildSupportItem() -> NSMenuItem {
+        let item = NSMenuItem(title: "Support ClaudeCodeNotify ☕", action: nil, keyEquivalent: "")
+        let sub = NSMenu()
+        if let koFi = SupportLinks.koFi {
+            let i = sub.addItem(withTitle: "Buy me a coffee (Ko-fi)", action: #selector(openKoFi), keyEquivalent: "")
+            i.target = self; i.representedObject = koFi
+        }
+        if let payPal = SupportLinks.payPal {
+            let i = sub.addItem(withTitle: "Donate via PayPal", action: #selector(openPayPal), keyEquivalent: "")
+            i.target = self; i.representedObject = payPal
+        }
+        sub.addItem(withTitle: "Copy Pix key (\(SupportLinks.pixKey))", action: #selector(copyPix), keyEquivalent: "").target = self
+        sub.addItem(.separator())
+        sub.addItem(withTitle: "I already donated — hide this", action: #selector(hideDonation), keyEquivalent: "").target = self
+        item.submenu = sub
+        return item
     }
 
     /// Bolinha colorida de status pro item do menu (verde = conectado, vermelho = não).
@@ -61,6 +86,23 @@ final class StatusItemController: NSObject {
             .withSymbolConfiguration(cfg)
         img?.isTemplate = false
         return img
+    }
+
+    @objc private func openKoFi(_ sender: NSMenuItem) {
+        if let url = sender.representedObject as? URL { SupportLinks.open(url) }
+    }
+
+    @objc private func openPayPal(_ sender: NSMenuItem) {
+        if let url = sender.representedObject as? URL { SupportLinks.open(url) }
+    }
+
+    @objc private func copyPix() {
+        SupportLinks.copyPixKey()
+    }
+
+    @objc private func hideDonation() {
+        config.hideDonation()
+        rebuildMenu()
     }
 
     @objc private func openWelcome() {

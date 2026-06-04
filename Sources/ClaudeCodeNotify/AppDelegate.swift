@@ -15,7 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let service = NotificationService(config: config)
         service.start()
         self.service = service
-        self.statusItem = StatusItemController(token: config.token)
+        self.statusItem = StatusItemController(config: config)
 
         // Primeiro launch → tela de boas-vindas.
         if !config.onboardingShown {
