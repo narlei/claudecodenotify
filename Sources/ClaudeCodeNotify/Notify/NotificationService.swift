@@ -41,17 +41,31 @@ final class NotificationService {
 
     private func present(_ event: NotificationEvent) {
         guard event.shouldNotify else { return }
-        NSLog("ClaudeCodeNotify: notificação kind=\(event.kind) proj=\(event.projectName)")
+
+        let frontmostApp = NSWorkspace.shared.frontmostApplication
+        let resolvedHostApp = TerminalActivator.resolveHost(pids: event.hostPIDs,
+                                                            termProgram: event.termProgram)
+        let hostIsFocused = TerminalActivator.isFocused(resolvedHostApp, frontmostApp: frontmostApp)
+        let preferences = Preferences.load()
+        let pref = preferences.pref(for: event.kind)
+        let shouldShowCard = !hostIsFocused || preferences.showCardWhenHostFocused
+        let shouldPlaySound = !hostIsFocused || preferences.playSoundWhenHostFocused
+
+        NSLog("ClaudeCodeNotify: notificação kind=\(event.kind) proj=\(event.projectName) hostFocused=\(hostIsFocused) card=\(shouldShowCard) sound=\(shouldPlaySound)")
+
+        // Som sem card não altera foco nem desmonta uma notificação que já esteja visível.
+        guard shouldShowCard else {
+            if shouldPlaySound { NotificationSound.play(pref.soundName) }
+            return
+        }
 
         teardownPanel(restoreFocus: false)      // limpa anterior sem mexer no foco
-        previousApp = NSWorkspace.shared.frontmostApplication
+        previousApp = frontmostApp
         currentEvent = event
 
-        // Resolve o app host (Ghostty/iTerm/Cursor/...) já agora, enquanto está vivo.
-        let hostApp = TerminalActivator.resolveHost(pids: event.hostPIDs, termProgram: event.termProgram) ?? previousApp
+        // O fallback pro app anterior serve só para o "go to terminal", nunca para suprimir.
+        let hostApp = resolvedHostApp ?? previousApp
         currentHostApp = hostApp
-
-        let pref = Preferences.load().pref(for: event.kind)
 
         let hosting = NSHostingView(rootView: NotificationView(event: event, hostAppName: hostApp?.localizedName))
         hosting.frame = NSRect(origin: .zero, size: hosting.fittingSize)
@@ -63,7 +77,7 @@ final class NotificationService {
         NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
 
-        NotificationSound.play(pref.soundName)
+        if shouldPlaySound { NotificationSound.play(pref.soundName) }
         installMonitors()
         scheduleAutoDismiss(after: pref.durationSeconds)
     }

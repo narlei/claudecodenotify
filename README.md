@@ -38,7 +38,7 @@ bridge.sh ── POST (127.0.0.1 + token, fire-and-forget) ──►  ClaudeCode
   press Enter / click ────────────────────────────────────────┘ → brings the terminal where Claude runs to the front
 ```
 
-The notification appears centered at the top, over anything (including fullscreen apps), and captures the keyboard so a single **Enter** takes you to Claude. **Esc**, a click, or the per-type timeout dismisses it. Nothing is blocked — Claude keeps showing its native prompt in the terminal; this just gets you there.
+When shown, the notification appears centered at the top, over anything (including fullscreen apps), and captures the keyboard so a single **Enter** takes you to Claude. **Esc**, a click, or the per-type timeout dismisses it. Nothing is blocked — Claude keeps showing its native prompt in the terminal; this just gets you there.
 
 ## Features
 
@@ -47,7 +47,7 @@ The notification appears centered at the top, over anything (including fullscree
   - 🟡 Claude is idle (waiting for input)
   - 🟢 Claude finished the task (shows a short summary)
 - **Enter → jump to the terminal** (Ghostty, iTerm, Terminal, VS Code, WezTerm, …), detected via `$TERM_PROGRAM`.
-- **Preferences** (menu → Preferences…): per-type **duration** (0 = stays until you dismiss it) and **sound** (system sounds or None, with preview).
+- **Preferences** (menu → Preferences…): choose card/sound behavior while Claude's terminal or editor is focused, plus per-type **duration** (0 = stays until you dismiss it) and **sound** (system sounds or None, with preview).
 - **Open at Login** via `SMAppService`.
 - Local & private: the server listens only on `127.0.0.1` and validates a token.
 
@@ -67,7 +67,7 @@ Everything lives in the **menu bar** (the bell icon). The menu shows a **green/r
 
 Requires **macOS 13+** on **Apple Silicon**.
 
-1. Download `ClaudeCodeNotify-x.y.z.zip` from the [Releases page](../../releases) and unzip it.
+1. Download and open the latest [`ClaudeCodeNotify.dmg`](../../releases/latest/download/ClaudeCodeNotify.dmg).
 2. Drag `ClaudeCodeNotify.app` into your **Applications** folder.
 3. **First launch** — the app is **unsigned** (no paid Apple account), so macOS blocks a double-click once. Do it once:
    - **right-click** the app → **Open** → **Open** in the dialog; or
@@ -88,7 +88,7 @@ make build      # compile (swift build)
 make app        # assemble ClaudeCodeNotify.app (Info.plist + icon + ad-hoc sign)
 make install    # build and open the app — then use the menu "Connect Claude Code"
 make zip        # package into dist/ClaudeCodeNotify-<version>.zip
-make dmg        # build a drag-to-Applications dist/ClaudeCodeNotify-<version>.dmg
+make dmg        # build a drag-to-Applications dist/ClaudeCodeNotify.dmg
 make uninstall  # remove the hooks from ~/.claude/settings.json (with backup)
 make help       # list all targets
 ```
@@ -97,7 +97,7 @@ make help       # list all targets
 
 ## Distribution
 
-Unsigned app (no paid Apple account): ad-hoc signed, shipped on GitHub Releases as a drag-to-Applications **`.dmg`** (`make dmg`) or a **`.zip`** (`make zip`). First launch needs right-click → Open (Gatekeeper). Apple Silicon.
+Unsigned app (no paid Apple account): ad-hoc signed, shipped on GitHub Releases as a drag-to-Applications **`ClaudeCodeNotify.dmg`** (`make dmg`) or a versioned **`.zip`** (`make zip`). The stable DMG name powers the website's latest-release download link. First launch needs right-click → Open (Gatekeeper). Apple Silicon.
 
 ## Support
 

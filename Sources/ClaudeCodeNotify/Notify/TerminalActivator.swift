@@ -37,4 +37,12 @@ enum TerminalActivator {
         // sem isso o macOS ignora a troca pro terminal.
         app?.activate(options: [.activateIgnoringOtherApps])
     }
+
+    /// Confirma que o host resolvido é exatamente o app em primeiro plano. Sem fallback por
+    /// bundle ID: em caso de dúvida, o app deve notificar para não esconder um evento.
+    static func isFocused(_ hostApp: NSRunningApplication?,
+                          frontmostApp: NSRunningApplication?) -> Bool {
+        guard let hostApp, let frontmostApp else { return false }
+        return hostApp.processIdentifier == frontmostApp.processIdentifier
+    }
 }

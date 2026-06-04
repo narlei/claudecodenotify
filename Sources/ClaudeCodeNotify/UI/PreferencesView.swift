@@ -9,12 +9,19 @@ final class PreferencesStore: ObservableObject {
     init() { prefs = Preferences.load() }
 }
 
-/// Janela de Preferências: duração + som por tipo de notificação.
+/// Janela de Preferências: comportamento em foco + duração e som por tipo.
 struct PreferencesView: View {
     @StateObject private var store = PreferencesStore()
 
     var body: some View {
         Form {
+            Section("When Claude's terminal or editor is focused") {
+                Toggle("Show notification card", isOn: $store.prefs.showCardWhenHostFocused)
+                Toggle("Play notification sound", isOn: $store.prefs.playSoundWhenHostFocused)
+                Text("These settings apply when the app running Claude is already in front. Sound still respects the choice for each notification type.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             Section("Claude needs permission") {
                 typeRow($store.prefs.permission)
             }
@@ -30,7 +37,7 @@ struct PreferencesView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 460, height: 540)
+        .frame(width: 460, height: 650)
     }
 
     @ViewBuilder

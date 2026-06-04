@@ -56,7 +56,7 @@
             <span class="accent">one keystroke back to your terminal.</span>
           </p>
           <div class="hero__actions">
-            <a class="btn btn--primary" href="https://github.com/narlei/claudecodenotify/releases" rel="noopener">
+            <a class="btn btn--primary" href="#download">
               <svg class="btn__glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v10m0 0l-3.5-3.5M12 13l3.5-3.5M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Download for macOS
             </a>
@@ -151,16 +151,29 @@
     <section id="download" class="section section--cream-deep" aria-labelledby="download-title">
       <div class="wrap wrap--narrow">
         <h2 id="download-title" class="section__title">Download</h2>
-        <p class="download__lead">Ships as a drag-to-Applications <strong>.dmg</strong> (or <strong>.zip</strong>) from GitHub Releases.</p>
-        <a class="btn btn--primary btn--lg" href="https://github.com/narlei/claudecodenotify/releases" rel="noopener">
+        <p class="download__lead">Download the latest drag-to-Applications <strong>.dmg</strong> from GitHub Releases.</p>
+        <a class="btn btn--primary btn--lg" href="https://github.com/narlei/claudecodenotify/releases/latest/download/ClaudeCodeNotify.dmg" target="_blank" rel="noopener noreferrer">
           <svg class="btn__glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v10m0 0l-3.5-3.5M12 13l3.5-3.5M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Get it on GitHub Releases
+          Download latest .dmg
         </a>
 
         <div class="callout">
           <h3>First launch (unsigned app)</h3>
           <p>The app is ad-hoc signed (no paid Apple account), so Gatekeeper will warn you the first time. Either <strong>right-click → Open</strong>, or clear the quarantine flag:</p>
-          <pre class="terminal terminal--inline"><code>xattr -dr com.apple.quarantine /Applications/ClaudeCodeNotify.app</code></pre>
+          <div class="command-copy">
+            <pre class="terminal terminal--inline"><code>xattr -dr com.apple.quarantine /Applications/ClaudeCodeNotify.app</code></pre>
+            <button class="command-copy__button" id="command-copy" type="button" data-command="xattr -dr com.apple.quarantine /Applications/ClaudeCodeNotify.app" aria-label="Copy quarantine removal command" aria-controls="command-next-steps" aria-expanded="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 8V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3m-7-6h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span aria-live="polite">Copy</span>
+            </button>
+          </div>
+          <div class="command-next-steps" id="command-next-steps" hidden>
+            <strong>Next:</strong>
+            <ol>
+              <li>Open Terminal</li>
+              <li>Press <kbd>⌘V</kbd>, then <kbd>Enter</kbd></li>
+            </ol>
+          </div>
           <p class="callout__req">Requirements: <strong>macOS 13+</strong>, <strong>Apple Silicon</strong>.</p>
         </div>
       </div>
