@@ -10,8 +10,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/narlei/claudecodenotify/releases/latest"><img src="https://img.shields.io/github/v/release/narlei/claudecodenotify?color=D9755E&label=release" alt="Latest release"></a>
-  <a href="https://github.com/narlei/claudecodenotify/releases"><img src="https://img.shields.io/github/downloads/narlei/claudecodenotify/total?color=D9755E&label=downloads" alt="Downloads"></a>
   <img src="https://img.shields.io/badge/macOS-13%2B-262624" alt="macOS 13+">
   <img src="https://img.shields.io/badge/Apple%20Silicon-arm64-262624" alt="Apple Silicon">
   <a href="https://claudecodenotify.narlei.com"><img src="https://img.shields.io/badge/website-claudecodenotify.narlei.com-D9755E" alt="Website"></a>
