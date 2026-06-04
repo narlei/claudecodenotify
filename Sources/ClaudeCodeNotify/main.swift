@@ -42,6 +42,11 @@ if let idx = CommandLine.arguments.firstIndex(of: "--render-notif") {
     MainActor.assumeIsolated { NotificationRenderer.render(to: out) }
     exit(0)
 }
+if let idx = CommandLine.arguments.firstIndex(of: "--render-icon-variants") {
+    let out = CommandLine.arguments.indices.contains(idx + 1) ? CommandLine.arguments[idx + 1] : "/tmp/ccn-icon-variants.png"
+    MainActor.assumeIsolated { IconRenderer.renderVariants(to: out) }
+    exit(0)
+}
 if let idx = CommandLine.arguments.firstIndex(of: "--render-icon") {
     let out = CommandLine.arguments.indices.contains(idx + 1) ? CommandLine.arguments[idx + 1] : "/tmp/ccn-icon.png"
     MainActor.assumeIsolated { IconRenderer.render(to: out) }
