@@ -23,6 +23,12 @@ jobs:
       - name: Build (release)
         run: swift build -c release
 
+      - name: Testes + cobertura
+        run: swift test --enable-code-coverage
+
+      - name: Relatório de cobertura
+        run: ./Scripts/coverage.sh
+
       - name: Montar .app (Info.plist + ad-hoc sign)
         run: ./Scripts/build-app.sh release
 
