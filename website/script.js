@@ -1,20 +1,6 @@
-// Pix key — copy to clipboard with a small "Copied!" confirmation.
+// Copy helpers for the install command and Pix key.
 (function () {
   "use strict";
-
-  var btn = document.getElementById("pix-copy");
-  var status = document.getElementById("pix-status");
-  if (!btn || !status) return;
-
-  var resetTimer;
-
-  function confirm(message) {
-    status.textContent = message;
-    clearTimeout(resetTimer);
-    resetTimer = setTimeout(function () {
-      status.textContent = "";
-    }, 2500);
-  }
 
   function fallbackCopy(text) {
     var ta = document.createElement("textarea");
@@ -30,16 +16,65 @@
     return ok;
   }
 
-  btn.addEventListener("click", function () {
-    var key = btn.getAttribute("data-key") || "";
-
+  function copyText(text, onSuccess, onFailure) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(key).then(
-        function () { confirm("Copied! ✓"); },
-        function () { confirm(fallbackCopy(key) ? "Copied! ✓" : "Copy this: " + key); }
+      navigator.clipboard.writeText(text).then(
+        onSuccess,
+        function () { fallbackCopy(text) ? onSuccess() : onFailure(); }
       );
     } else {
-      confirm(fallbackCopy(key) ? "Copied! ✓" : "Copy this: " + key);
+      fallbackCopy(text) ? onSuccess() : onFailure();
     }
-  });
+  }
+
+  var commandBtn = document.getElementById("command-copy");
+  if (commandBtn) {
+    var commandLabel = commandBtn.querySelector("span");
+    var commandNextSteps = document.getElementById("command-next-steps");
+    var commandResetTimer;
+
+    function confirmCommand(message) {
+      commandLabel.textContent = message;
+      clearTimeout(commandResetTimer);
+      commandResetTimer = setTimeout(function () {
+        commandLabel.textContent = "Copy";
+      }, 2500);
+    }
+
+    commandBtn.addEventListener("click", function () {
+      var command = commandBtn.getAttribute("data-command") || "";
+      if (commandNextSteps) {
+        commandNextSteps.hidden = false;
+        commandBtn.setAttribute("aria-expanded", "true");
+      }
+      copyText(
+        command,
+        function () { confirmCommand("Copied! ✓"); },
+        function () { confirmCommand("Copy failed"); }
+      );
+    });
+  }
+
+  var pixBtn = document.getElementById("pix-copy");
+  var pixStatus = document.getElementById("pix-status");
+  if (pixBtn && pixStatus) {
+    var pixResetTimer;
+
+    function confirmPix(message) {
+      pixStatus.textContent = message;
+      clearTimeout(pixResetTimer);
+      pixResetTimer = setTimeout(function () {
+        pixStatus.textContent = "";
+      }, 2500);
+    }
+
+    pixBtn.addEventListener("click", function () {
+      var key = pixBtn.getAttribute("data-key") || "";
+      copyText(
+        key,
+        function () { confirmPix("Copied! ✓"); },
+        function () { confirmPix("Copy this: " + key); }
+      );
+    });
+  }
 })();

@@ -7,11 +7,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP="$ROOT/ClaudeCodeNotify.app"
 DIST="$ROOT/dist"
-VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$ROOT/Resources/Info.plist" 2>/dev/null || echo 0.0.0)"
-DMG="$DIST/ClaudeCodeNotify-$VERSION.dmg"
+DMG="$DIST/ClaudeCodeNotify.dmg"
 
 [ -d "$APP" ] || { echo "ERRO: $APP não existe. Rode 'make app' antes." >&2; exit 1; }
-mkdir -p "$DIST"; rm -f "$DMG"
+mkdir -p "$DIST"; rm -f "$DIST"/ClaudeCodeNotify-*.dmg "$DMG"
 
 BG="$DIST/.dmg-bg.png"
 "$APP/Contents/MacOS/ClaudeCodeNotify" --render-dmg-bg "$BG" >/dev/null 2>&1 || BG=""

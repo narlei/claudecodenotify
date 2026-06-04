@@ -9,7 +9,7 @@ VERSION := $(shell /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString
 
 .DEFAULT_GOAL := build
 
-.PHONY: setup build run app zip dmg install uninstall clean help
+.PHONY: setup build run app zip dmg release install uninstall clean help
 
 help: ## Lista os alvos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -40,8 +40,10 @@ zip: app ## Empacota o $(APP) em $(DIST)/$(APP_NAME)-$(VERSION).zip (GitHub Rele
 	@codesign --verify --verbose "$(APP)" 2>&1 | tail -1
 	@echo "==> $(DIST)/$(APP_NAME)-$(VERSION).zip"
 
-dmg: app ## Cria o $(DIST)/$(APP_NAME)-$(VERSION).dmg (arraste pro Applications)
+dmg: app ## Cria o $(DIST)/$(APP_NAME).dmg (arraste pro Applications)
 	./Scripts/make-dmg.sh
+
+release: zip dmg ## Gera todos os artefatos de release (zip e dmg)
 
 install: app ## Monta e abre o app (use o menu para "Conectar Claude Code")
 	open $(APP)
