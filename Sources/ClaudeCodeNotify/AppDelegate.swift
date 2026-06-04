@@ -8,7 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             try AppPaths.ensureSupportDirectory()
         } catch {
-            NSLog("ClaudeCodeNotify: falha ao criar diretório de suporte: \(error)")
+            NSLog("ClaudeCodeNotify: failed to create support directory: \(error)")
         }
 
         var config = Config.loadOrCreate()
@@ -17,7 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.service = service
         self.statusItem = StatusItemController(config: config)
 
-        // Primeiro launch → tela de boas-vindas.
+        // First launch → welcome screen.
         if !config.onboardingShown {
             OnboardingWindowController.shared.show(token: config.token)
             config.markOnboardingShown()

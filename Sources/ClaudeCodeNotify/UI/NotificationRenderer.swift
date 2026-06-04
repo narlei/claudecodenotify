@@ -22,6 +22,7 @@ enum NotificationRenderer {
             LinearGradient(colors: [Color(white: 0.13), Color(white: 0.07)],
                            startPoint: .top, endPoint: .bottom)
         )
+        .environment(\.colorScheme, .dark)
 
         let renderer = ImageRenderer(content: stack)
         renderer.scale = 2
@@ -33,7 +34,7 @@ enum NotificationRenderer {
     }
 
     private static func sample(event: String, type: String?, msg: String?, last: String?) -> NotificationEvent? {
-        var dict: [String: Any] = ["hook_event_name": event, "cwd": "/Users/narlei/Sources/MeuProjeto"]
+        var dict: [String: Any] = ["hook_event_name": event, "cwd": "/Users/narlei/Sources/MyProject"]
         if let type { dict["notification_type"] = type }
         if let msg { dict["message"] = msg }
         if let last { dict["last_assistant_message"] = last }

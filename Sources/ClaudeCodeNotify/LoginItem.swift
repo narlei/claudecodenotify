@@ -1,8 +1,8 @@
 import Foundation
 import ServiceManagement
 
-/// "Abrir no login" via SMAppService (macOS 13+). Só funciona pro .app registrado;
-/// no binário de dev pode falhar — tratamos com try? e refletimos o status real.
+/// "Open at login" via SMAppService (macOS 13+). Only works for the registered .app;
+/// in dev binary it may fail — handled with try? and reflects real status.
 enum LoginItem {
     static var isEnabled: Bool {
         SMAppService.mainApp.status == .enabled
@@ -20,7 +20,7 @@ enum LoginItem {
                 }
             }
         } catch {
-            NSLog("ClaudeCodeNotify: SMAppService falhou: \(error)")
+            NSLog("ClaudeCodeNotify: SMAppService failed: \(error)")
         }
     }
 }

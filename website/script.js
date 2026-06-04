@@ -80,3 +80,30 @@
     });
   }
 })();
+
+// GitHub download counter — sums download_count across all release assets.
+// Public API, no auth (60 req/h per IP). Stays hidden if there are no releases.
+(function () {
+  "use strict";
+
+  var wrap = document.getElementById("dl-count");
+  var num = document.getElementById("dl-count-num");
+  if (!wrap || !num) return;
+
+  fetch("https://api.github.com/repos/narlei/claudecodenotify/releases")
+    .then(function (res) { return res.ok ? res.json() : Promise.reject(res.status); })
+    .then(function (releases) {
+      if (!Array.isArray(releases)) return;
+      var total = releases.reduce(function (sum, rel) {
+        return sum + (rel.assets || []).reduce(function (s, a) {
+          return s + (a.download_count || 0);
+        }, 0);
+      }, 0);
+
+      if (total > 0) {
+        num.textContent = total.toLocaleString("en-US");
+        wrap.hidden = false;
+      }
+    })
+    .catch(function () { /* offline, rate-limited, or no releases — stay hidden */ });
+})();
