@@ -9,6 +9,10 @@ A macOS **menu bar** app that pops a **floating notification in the center of yo
 > **It's a notifier, not a gatekeeper.** It doesn't block tools or decide permissions — you still approve/deny in the terminal. It just makes sure you *notice* and gets you there fast.
 
 <p align="center">
+  🌐 <a href="https://claudecodenotify.narlei.com"><b>claudecodenotify.narlei.com</b></a>
+</p>
+
+<p align="center">
   <img src="docs/notifications.png" width="480" alt="The three notification types: permission, idle, and finished">
 </p>
 
@@ -20,6 +24,7 @@ A macOS **menu bar** app that pops a **floating notification in the center of yo
 - [Installation](#installation)
 - [Build (development)](#build-development)
 - [Distribution](#distribution)
+- [Support](#support)
 - [Background](#background)
 
 ## How it works
@@ -93,6 +98,16 @@ make help       # list all targets
 ## Distribution
 
 Unsigned app (no paid Apple account): ad-hoc signed, shipped on GitHub Releases as a drag-to-Applications **`.dmg`** (`make dmg`) or a **`.zip`** (`make zip`). First launch needs right-click → Open (Gatekeeper). Apple Silicon.
+
+## Support
+
+If ClaudeCodeNotify saves you trips to the terminal, consider buying me a coffee ☕
+
+- **Ko-fi:** [ko-fi.com/narlei](https://ko-fi.com/narlei)
+- **PayPal:** [paypal.me/narlei](https://paypal.me/narlei)
+- **Pix:** `contato@narlei.com`
+
+You can also support it from the app: menu bar → **Support ClaudeCodeNotify ☕**.
 
 ## Background
 

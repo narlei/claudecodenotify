@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClaudeCodeNotify — Desktop notifications for Claude Code</title>
+  <meta name="description" content="A tiny macOS menu bar app that notifies you when Claude Code needs permission, goes idle, or finishes a task — then one keystroke brings your terminal back to the front." />
+
+  <!-- Open Graph / social -->
+  <meta property="og:title" content="ClaudeCodeNotify" />
+  <meta property="og:description" content="Desktop notifications when Claude Code needs you — one keystroke back to your terminal." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/notifications.png" />
+
+  <link rel="icon" type="image/png" href="assets/icon.png" />
+
+  <!-- Inter via CDN (with system fallback in CSS) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ───────────────────────── Header ───────────────────────── -->
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="brand" href="#top">
+        <img class="brand__icon" src="assets/icon.png" alt="" width="36" height="36" />
+        <span class="brand__name">ClaudeCodeNotify</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#screenshots">Screenshots</a></li>
+        <li><a href="#support">Support</a></li>
+      </ul>
+      <a class="btn btn--ghost nav__cta" href="https://github.com/narlei/claudecodenotify" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <span id="top"></span>
+
+    <!-- ───────────────────────── Hero ───────────────────────── -->
+    <section class="hero">
+      <div class="hero__inner">
+        <div class="hero__copy">
+          <div class="hero__badge">
+            <img src="assets/icon.png" alt="ClaudeCodeNotify app icon: a coral squircle with a white bell and a sparkle" width="72" height="72" />
+          </div>
+          <h1 class="hero__title">ClaudeCodeNotify</h1>
+          <p class="hero__tagline">
+            Desktop notifications when Claude Code needs you —
+            <span class="accent">one keystroke back to your terminal.</span>
+          </p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="https://github.com/narlei/claudecodenotify/releases" rel="noopener">
+              <svg class="btn__glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v10m0 0l-3.5-3.5M12 13l3.5-3.5M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Download for macOS
+            </a>
+            <a class="btn btn--coffee" href="https://ko-fi.com/narlei" rel="noopener">
+              Buy me a coffee ☕
+            </a>
+          </div>
+          <p class="hero__note">macOS 13+ · Apple Silicon · free &amp; open source</p>
+        </div>
+
+        <div class="hero__visual">
+          <img src="assets/notifications.png"
+               alt="Three ClaudeCodeNotify notification cards: Claude needs permission, Claude is waiting for you, and Claude finished — each showing a keystroke to return to the terminal."
+               width="952" height="702" loading="eager" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────── What it is ───────────────── -->
+    <section class="band" aria-labelledby="whatis-title">
+      <div class="wrap">
+        <p class="band__lead">
+          <strong>It&rsquo;s a notifier, not a gatekeeper.</strong>
+          <span id="whatis-title">It doesn&rsquo;t block tools or decide permissions — you still
+          approve or deny in the terminal. It just makes sure you <em>notice</em>, and gets you
+          there fast.</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── Features ───────────────────────── -->
+    <section id="features" class="section" aria-labelledby="features-title">
+      <div class="wrap">
+        <h2 id="features-title" class="section__title">Everything it does</h2>
+        <ul class="features">
+          <li class="card">
+            <span class="card__icon" aria-hidden="true">🔔</span>
+            <h3>Get notified</h3>
+            <p>A floating notification appears when Claude asks for permission, goes idle waiting for input, or finishes a task.</p>
+          </li>
+          <li class="card">
+            <span class="card__icon" aria-hidden="true">↵</span>
+            <h3>Enter → jump to your terminal</h3>
+            <p>Detects the exact app Claude runs in — Ghostty, iTerm, Terminal, Cursor, VS Code — and brings it to the front.</p>
+          </li>
+          <li class="card">
+            <span class="card__icon" aria-hidden="true">🎚️</span>
+            <h3>Make it yours</h3>
+            <p>Set how long each notification stays on screen and which sound plays — pick a system sound, or none at all.</p>
+          </li>
+          <li class="card">
+            <span class="card__icon" aria-hidden="true">📊</span>
+            <h3>Lives in your menu bar</h3>
+            <p>A bell icon with a connection status dot. Connect or disconnect anytime — no Dock icon, no clutter.</p>
+          </li>
+          <li class="card">
+            <span class="card__icon" aria-hidden="true">🔒</span>
+            <h3>Local &amp; private</h3>
+            <p>A tiny local server on <code>127.0.0.1</code> with a token. Nothing leaves your machine.</p>
+          </li>
+          <li class="card">
+            <span class="card__icon" aria-hidden="true">⭐</span>
+            <h3>Free &amp; open source</h3>
+            <p>MIT-friendly and fully on GitHub. <a href="https://github.com/narlei/claudecodenotify" rel="noopener">Read the code</a>.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── Screenshots ───────────────────────── -->
+    <section id="screenshots" class="section" aria-labelledby="shots-title">
+      <div class="wrap">
+        <h2 id="shots-title" class="section__title">See it in action</h2>
+        <div class="gallery">
+          <figure class="shot">
+            <img src="assets/onboarding.png" alt="The ClaudeCodeNotify welcome window explaining its four features, with a 'Claude Code connected' banner and a Get Started button." width="592" height="820" loading="lazy" />
+            <figcaption>First-launch onboarding walks you through setup and confirms the connection.</figcaption>
+          </figure>
+          <figure class="shot">
+            <img src="assets/menu.png" alt="The menu bar dropdown showing a green 'Claude Code: connected' status, with Disconnect, Welcome, Preferences, Open at Login, a Support ClaudeCodeNotify submenu, and Quit." width="329" height="261" loading="lazy" />
+            <figcaption>The menu bar menu, with a green/red connection status dot.</figcaption>
+          </figure>
+          <figure class="shot shot--wide">
+            <img src="assets/notifications.png" alt="The three notification types: permission request, idle waiting, and finished task." width="952" height="702" loading="lazy" />
+            <figcaption>The three notification types — permission, idle, and finished.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── Download ───────────────────────── -->
+    <section id="download" class="section section--cream-deep" aria-labelledby="download-title">
+      <div class="wrap wrap--narrow">
+        <h2 id="download-title" class="section__title">Download</h2>
+        <p class="download__lead">Ships as a drag-to-Applications <strong>.dmg</strong> (or <strong>.zip</strong>) from GitHub Releases.</p>
+        <a class="btn btn--primary btn--lg" href="https://github.com/narlei/claudecodenotify/releases" rel="noopener">
+          <svg class="btn__glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v10m0 0l-3.5-3.5M12 13l3.5-3.5M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Get it on GitHub Releases
+        </a>
+
+        <div class="callout">
+          <h3>First launch (unsigned app)</h3>
+          <p>The app is ad-hoc signed (no paid Apple account), so Gatekeeper will warn you the first time. Either <strong>right-click → Open</strong>, or clear the quarantine flag:</p>
+          <pre class="terminal terminal--inline"><code>xattr -dr com.apple.quarantine /Applications/ClaudeCodeNotify.app</code></pre>
+          <p class="callout__req">Requirements: <strong>macOS 13+</strong>, <strong>Apple Silicon</strong>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── Support ───────────────────────── -->
+    <section id="support" class="section section--support" aria-labelledby="support-title">
+      <div class="wrap wrap--narrow">
+        <span class="support__emoji" aria-hidden="true">☕</span>
+        <h2 id="support-title" class="section__title">Support the project</h2>
+        <p class="support__lead">
+          ClaudeCodeNotify is free and open source. <strong>Every little tip keeps me
+          motivated to make the app better</strong> — thank you! 💛
+        </p>
+
+        <div class="support__grid">
+          <!-- Ko-fi -->
+          <a class="support__card support__card--link" href="https://ko-fi.com/narlei" rel="noopener">
+            <span class="support__icon support__icon--kofi" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M4 7h11.5a3.5 3.5 0 0 1 0 7H15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 7v6a4 4 0 0 0 4 4h3a4 4 0 0 0 4-4V7H4z" fill="currentColor"/>
+                <path d="M8 2.5c-.6.7-.6 1.3 0 2M11 2.5c-.6.7-.6 1.3 0 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="support__label">Ko-fi</span>
+            <span class="support__sub">Buy me a coffee</span>
+            <span class="support__cta">Open Ko-fi <span aria-hidden="true">→</span></span>
+          </a>
+
+          <!-- PayPal -->
+          <a class="support__card support__card--link" href="https://paypal.me/narlei" rel="noopener">
+            <span class="support__icon support__icon--paypal" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M7.4 19.5l.5-3.2m0 0L9.4 6.2c.05-.3.3-.5.6-.5h4.3c2.6 0 4.2 1.6 3.8 4.1-.45 2.9-2.6 4.4-5.5 4.4H10c-.3 0-.55.2-.6.5l-.5 3.1c-.05.3-.3.5-.6.5H8c-.4 0-.65-.35-.6-.8z" fill="currentColor" opacity=".55"/>
+                <path d="M9.4 17.5l1.5-9.6c.05-.3.3-.5.6-.5h4.3c2.6 0 4.2 1.6 3.8 4.1-.45 2.9-2.6 4.4-5.5 4.4H12c-.3 0-.55.2-.6.5l-.5 3.1c-.05.3-.3.5-.6.5H10c-.4 0-.65-.35-.6-.8z" fill="currentColor"/>
+              </svg>
+            </span>
+            <span class="support__label">PayPal</span>
+            <span class="support__sub">paypal.me/narlei</span>
+            <span class="support__cta">Open PayPal <span aria-hidden="true">→</span></span>
+          </a>
+
+          <!-- Pix -->
+          <div class="support__card support__card--pix">
+            <span class="support__icon support__icon--pix" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 3.4c.6 0 1.17.24 1.6.66l5.84 5.84a2.26 2.26 0 0 1 0 3.2l-5.84 5.84a2.26 2.26 0 0 1-3.2 0L4.56 13.1a2.26 2.26 0 0 1 0-3.2L10.4 4.06c.43-.42 1-.66 1.6-.66z" fill="currentColor"/>
+                <path d="M12 8.2L15.8 12 12 15.8 8.2 12 12 8.2z" fill="#fff" opacity=".9"/>
+              </svg>
+            </span>
+            <span class="support__label">Pix</span>
+            <span class="support__sub">Brazil — copy the key</span>
+            <div class="pix">
+              <code id="pix-key">contato@narlei.com</code>
+              <button class="btn btn--primary btn--sm" id="pix-copy" type="button" data-key="contato@narlei.com" aria-label="Copy Pix key contato@narlei.com">Copy</button>
+            </div>
+            <span class="pix__status" id="pix-status" role="status" aria-live="polite"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ───────────────────────── Footer ───────────────────────── -->
+  <footer class="site-footer">
+    <div class="wrap site-footer__inner">
+      <div class="site-footer__brand">
+        <img src="assets/icon.png" alt="" width="28" height="28" />
+        <span>ClaudeCodeNotify</span>
+      </div>
+      <p class="site-footer__tag">Made for people who let Claude Code cook.</p>
+      <nav class="site-footer__links" aria-label="Footer">
+        <a href="https://github.com/narlei/claudecodenotify" rel="noopener">GitHub repo</a>
+        <a href="https://github.com/narlei/claudecodenotify/releases" rel="noopener">Releases</a>
+        <a href="https://ko-fi.com/narlei" rel="noopener">Ko-fi</a>
+      </nav>
+      <p class="site-footer__by">By <strong>Narlei Moreira</strong></p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
