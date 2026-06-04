@@ -27,13 +27,15 @@
     }
   }
 
-  var commandBtn = document.getElementById("command-copy");
-  if (commandBtn) {
+  var commandBtns = document.querySelectorAll(".command-copy__button");
+  commandBtns.forEach(function (commandBtn) {
     var commandLabel = commandBtn.querySelector("span");
-    var commandNextSteps = document.getElementById("command-next-steps");
+    var nextStepsId = commandBtn.getAttribute("aria-controls");
+    var commandNextSteps = nextStepsId ? document.getElementById(nextStepsId) : null;
     var commandResetTimer;
 
     function confirmCommand(message) {
+      if (!commandLabel) return;
       commandLabel.textContent = message;
       clearTimeout(commandResetTimer);
       commandResetTimer = setTimeout(function () {
@@ -53,7 +55,7 @@
         function () { confirmCommand("Copy failed"); }
       );
     });
-  }
+  });
 
   var pixBtn = document.getElementById("pix-copy");
   var pixStatus = document.getElementById("pix-status");
