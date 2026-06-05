@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Notificação central, SEM botões de ação. Mostra o que o Claude quer + dica de teclado.
+/// Central notification, NO action buttons. Shows what Claude wants + keyboard hint.
 struct NotificationView: View {
     let event: NotificationEvent
     var hostAppName: String? = nil
@@ -24,8 +24,8 @@ struct NotificationView: View {
                         Text(subtitle)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                            .lineLimit(8)                                  // até 8 linhas; trunca além
-                            .fixedSize(horizontal: false, vertical: true)  // cresce/encolhe com o texto
+                            .lineLimit(8)                                  // up to 8 lines; truncates beyond
+                            .fixedSize(horizontal: false, vertical: true)  // grows/shrinks with text
                     }
                     Text("⏎ go to \(hostAppName ?? "Claude")   ·   esc dismiss")
                         .font(.caption2)

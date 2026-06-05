@@ -1,6 +1,6 @@
 import Foundation
 
-/// Payload dos hooks Notification/Stop do Claude Code (campos capturados na validação).
+/// Payload from Claude Code's Notification/Stop hooks (fields captured during validation).
 struct NotificationPayload: Decodable {
     let hookEventName: String?
     let notificationType: String?

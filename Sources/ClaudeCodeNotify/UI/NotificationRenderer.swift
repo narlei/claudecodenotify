@@ -1,8 +1,8 @@
 import AppKit
 import SwiftUI
 
-/// Dev: renderiza as variações de notificação num PNG pra inspeção de layout.
-/// Uso: `ClaudeCodeNotify --render-notif /caminho.png`
+/// Dev: renders notification variations to PNG for layout inspection.
+/// Usage: `ClaudeCodeNotify --render-notif /path.png`
 @MainActor
 enum NotificationRenderer {
     static func render(to path: String) {
@@ -42,7 +42,7 @@ enum NotificationRenderer {
               let bmp = NSBitmapImageRep(data: tiff),
               let png = bmp.representation(using: .png, properties: [:]) else { return }
         try? png.write(to: URL(fileURLWithPath: path))
-        print("notificações renderizadas em \(path)")
+        print("notifications rendered to \(path)")
     }
 
     private static func sample(event: String, type: String?, msg: String?, last: String?) -> NotificationEvent? {

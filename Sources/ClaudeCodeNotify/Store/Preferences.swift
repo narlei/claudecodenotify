@@ -1,10 +1,10 @@
 import Foundation
 
-/// Preferências do usuário: comportamento quando o host está em foco e ajustes por tipo.
+/// User preferences: behavior when host is focused and per-type settings.
 struct Preferences: Codable {
     struct TypePref: Codable {
         var durationSeconds: Double
-        var soundName: String?   // nil/"" = sem som
+        var soundName: String?   // nil/"" = no sound
     }
 
     var permission: TypePref
@@ -34,8 +34,8 @@ struct Preferences: Codable {
         self.playSoundWhenHostFocused = playSoundWhenHostFocused
     }
 
-    // Preferências novas ausentes em arquivos antigos recebem os defaults sem perder
-    // duração e som já configurados pelo usuário.
+    // New preferences missing from old files get defaults without losing
+    // duration and sound already configured by user.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         permission = try c.decode(TypePref.self, forKey: .permission)
@@ -45,7 +45,7 @@ struct Preferences: Codable {
         playSoundWhenHostFocused = (try? c.decode(Bool.self, forKey: .playSoundWhenHostFocused)) ?? true
     }
 
-    /// Sons do sistema disponíveis (em /System/Library/Sounds). "" = Nenhum.
+    /// Available system sounds (in /System/Library/Sounds). "" = None.
     static let availableSounds = [
         "", "Basso", "Blow", "Bottle", "Frog", "Funk", "Glass", "Hero",
         "Morse", "Ping", "Pop", "Purr", "Sosumi", "Submarine", "Tink"

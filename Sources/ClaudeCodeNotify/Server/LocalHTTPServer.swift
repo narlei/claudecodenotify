@@ -1,11 +1,11 @@
 import Foundation
 import Network
 
-/// Servidor HTTP local mínimo: escuta só em 127.0.0.1 numa porta efêmera, valida o header
-/// X-CCNotify-Token e recebe `POST /notify` (o bridge.sh manda o payload do hook). Responde
-/// 200 na hora — NÃO bloqueia nada (o app é só um notificador).
+/// Minimal local HTTP server: listens only on 127.0.0.1 on an ephemeral port, validates
+/// X-CCNotify-Token header and receives `POST /notify` (bridge.sh sends hook payload). Responds
+/// 200 immediately — does NOT block anything (app is just a notifier).
 final class LocalHTTPServer {
-    /// payload (body do hook) + TERM_PROGRAM + cadeia de PIDs ancestrais (do bridge).
+    /// payload (hook body) + TERM_PROGRAM + ancestor PIDs chain (from bridge).
     typealias NotifyHandler = (_ body: Data, _ termProgram: String?, _ hostPIDs: [Int32]) -> Void
 
     private let token: String
@@ -32,10 +32,10 @@ final class LocalHTTPServer {
             switch state {
             case .ready:
                 self.port = self.listener?.port?.rawValue ?? 0
-                NSLog("ClaudeCodeNotify: HTTP server pronto em 127.0.0.1:\(self.port)")
+                NSLog("ClaudeCodeNotify: HTTP server ready at 127.0.0.1:\(self.port)")
                 self.onReady?(self.port)
             case .failed(let err):
-                NSLog("ClaudeCodeNotify: HTTP server falhou: \(err)")
+                NSLog("ClaudeCodeNotify: HTTP server failed: \(err)")
             default:
                 break
             }
@@ -82,7 +82,7 @@ final class LocalHTTPServer {
             .split(separator: ",")
             .compactMap { Int32($0.trimmingCharacters(in: .whitespaces)) }
         handler(req.body, term, pids)
-        send(conn, status: "200 OK") // fire-and-forget: responde já
+        send(conn, status: "200 OK") // fire-and-forget: responds immediately
     }
 
     private func send(_ conn: NWConnection, status: String) {
@@ -96,11 +96,11 @@ final class LocalHTTPServer {
     }
 }
 
-/// Parser HTTP/1.1 mínimo. nil enquanto a requisição não está completa.
+/// Minimal HTTP/1.1 parser. nil while request is incomplete.
 struct HTTPRequest {
     let method: String
     let path: String
-    let headers: [String: String]  // nomes em minúsculas
+    let headers: [String: String]  // names in lowercase
     let body: Data
 
     init?(buffer: Data) {

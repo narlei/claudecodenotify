@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Tela de boas-vindas (primeiro launch). Explica o app e deixa conectar/configurar já aqui.
+/// Welcome screen (first launch). Explains the app and lets you connect/configure right here.
 struct OnboardingView: View {
     let token: String
     let onClose: () -> Void

@@ -1,22 +1,22 @@
 import Foundation
 
-/// Um evento de notificação vindo do Claude Code (não bloqueia nada — só avisa).
+/// A notification event from Claude Code (doesn't block anything — just notifies).
 struct NotificationEvent {
     enum Kind {
-        case permission   // Claude precisa de permissão
-        case idle         // Claude está ocioso esperando input
-        case stop         // Claude terminou a tarefa
-        case other        // outros tipos de Notification (ignorados)
+        case permission   // Claude needs permission
+        case idle         // Claude is idle waiting for input
+        case stop         // Claude finished the task
+        case other        // other Notification types (ignored)
     }
 
     let kind: Kind
     let cwd: String?
     let sessionID: String?
-    let message: String?            // mensagem do hook Notification
-    let lastAssistantMessage: String? // resumo do Stop
-    /// Valor de $TERM_PROGRAM (ex.: "ghostty", "iTerm.app", "Apple_Terminal"), do bridge.
+    let message: String?            // message from Notification hook
+    let lastAssistantMessage: String? // Stop summary
+    /// Value of $TERM_PROGRAM (e.g. "ghostty", "iTerm.app", "Apple_Terminal"), from bridge.
     let termProgram: String?
-    /// Cadeia de PIDs ancestrais do bridge (pra achar o app GUI host e ativá-lo).
+    /// Ancestor PIDs chain from bridge (to find and activate the host GUI app).
     let hostPIDs: [Int32]
 
     var projectName: String {
@@ -24,7 +24,7 @@ struct NotificationEvent {
         return (cwd as NSString).lastPathComponent
     }
 
-    /// Decide se esse evento merece notificação (filtra tipos irrelevantes).
+    /// Decides if this event deserves notification (filters irrelevant types).
     var shouldNotify: Bool { kind != .other }
 
     init?(payload: NotificationPayload, termProgram: String?, hostPIDs: [Int32]) {

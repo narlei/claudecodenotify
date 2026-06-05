@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Item de menu bar: ícone de sino + menu (conectar/desconectar o Claude Code, abrir no login, sair).
+/// Menu bar item: bell icon + menu (connect/disconnect Claude Code, open at login, quit).
 @MainActor
 final class StatusItemController: NSObject {
     private let statusItem: NSStatusItem
@@ -15,7 +15,7 @@ final class StatusItemController: NSObject {
         super.init()
 
         if let button = statusItem.button {
-            // Glifo monocromático (template) no padrão dos ícones nativos da menu bar.
+            // Monochrome glyph (template) in native menu bar icon style.
             button.image = IconRenderer.menuBarImage()
                 ?? NSImage(systemSymbolName: "bell", accessibilityDescription: "ClaudeCodeNotify")
             button.image?.isTemplate = true
@@ -81,7 +81,7 @@ final class StatusItemController: NSObject {
         menu.addItem(withTitle: "Quit", action: #selector(quit), keyEquivalent: "q").target = self
     }
 
-    /// Submenu de doação ("pague um café"). Some quando o usuário marca "já doei".
+    /// Donation submenu ("buy me a coffee"). Hides when user marks "already donated".
     private func buildSupportItem() -> NSMenuItem {
         let item = NSMenuItem(title: "Support ClaudeCodeNotify ☕", action: nil, keyEquivalent: "")
         let sub = NSMenu()
@@ -100,7 +100,7 @@ final class StatusItemController: NSObject {
         return item
     }
 
-    /// Bolinha colorida de status pro item do menu (verde = conectado, vermelho = não).
+    /// Colored status dot for menu item (green = connected, red = disconnected).
     private func statusDot(_ color: NSColor) -> NSImage? {
         let cfg = NSImage.SymbolConfiguration(pointSize: 10, weight: .bold)
             .applying(NSImage.SymbolConfiguration(paletteColors: [color]))
@@ -173,7 +173,7 @@ final class StatusItemController: NSObject {
         alert.messageText = title
         alert.informativeText = body
         alert.alertStyle = .informational
-        // Não-ativante: mostra sem roubar foco indefinidamente.
+        // Non-activating: shows without stealing focus indefinitely.
         alert.runModal()
     }
 }

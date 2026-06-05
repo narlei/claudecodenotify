@@ -1,11 +1,11 @@
 import AppKit
 
-/// Descobre o app GUI onde o Claude está rodando (Ghostty, iTerm, Terminal, Cursor, VS Code…)
-/// e o traz pra frente. Estratégia principal: a cadeia de PIDs ancestrais do bridge — o
-/// primeiro ancestral que é um app "de verdade" (`.regular`) é o host. Isso distingue
-/// Cursor de VS Code e acha a instância exata, sem mapa fixo.
+/// Discovers the GUI app where Claude is running (Ghostty, iTerm, Terminal, Cursor, VS Code…)
+/// and brings it to front. Main strategy: the ancestor PIDs chain from bridge — the
+/// first ancestor that is a "real" app (`.regular`) is the host. This distinguishes
+/// Cursor from VS Code and finds the exact instance, without a fixed map.
 enum TerminalActivator {
-    /// Fallback por $TERM_PROGRAM, caso a cadeia de PIDs não resolva.
+    /// Fallback by $TERM_PROGRAM if PID chain doesn't resolve.
     private static let bundleByTerm: [String: String] = [
         "ghostty": "com.mitchellh.ghostty",
         "iTerm.app": "com.googlecode.iterm2",
@@ -19,7 +19,7 @@ enum TerminalActivator {
         "alacritty": "org.alacritty"
     ]
 
-    /// Resolve o app host a partir da cadeia de PIDs (+ fallback por TERM_PROGRAM).
+    /// Resolves the host app from the PID chain (+ fallback by TERM_PROGRAM).
     static func resolveHost(pids: [Int32], termProgram: String?) -> NSRunningApplication? {
         for pid in pids {
             if let app = NSRunningApplication(processIdentifier: pid), app.activationPolicy == .regular {
@@ -33,13 +33,13 @@ enum TerminalActivator {
     }
 
     static func activate(_ app: NSRunningApplication?) {
-        // .activateIgnoringOtherApps: nosso app está em foco (capturou o teclado), então
-        // sem isso o macOS ignora a troca pro terminal.
+        // .activateIgnoringOtherApps: our app is in focus (captured keyboard), so
+        // without this macOS ignores the switch to terminal.
         app?.activate(options: [.activateIgnoringOtherApps])
     }
 
-    /// Confirma que o host resolvido é exatamente o app em primeiro plano. Sem fallback por
-    /// bundle ID: em caso de dúvida, o app deve notificar para não esconder um evento.
+    /// Confirms the resolved host is exactly the frontmost app. No fallback by
+    /// bundle ID: in case of doubt, the app should notify to avoid hiding an event.
     static func isFocused(_ hostApp: NSRunningApplication?,
                           frontmostApp: NSRunningApplication?) -> Bool {
         guard let hostApp, let frontmostApp else { return false }

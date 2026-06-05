@@ -1,9 +1,9 @@
 import AppKit
 import SwiftUI
 
-/// Recebe os eventos do servidor e mostra a notificação central. Sem botões: Enter leva ao
-/// terminal do Claude; Esc/clique/timeout fecham e devolvem o foco. Um por vez (o novo
-/// substitui o anterior).
+/// Receives events from the server and shows the central notification. No buttons: Enter takes to
+/// Claude's terminal; Esc/click/timeout closes and restores focus. One at a time (new
+/// replaces previous).
 @MainActor
 final class NotificationService {
     private(set) var config: Config
@@ -32,12 +32,12 @@ final class NotificationService {
             Task { @MainActor in self.onPortChange?(port) }
         }
         do { try server.start(); self.server = server }
-        catch { NSLog("ClaudeCodeNotify: não foi possível iniciar o servidor: \(error)") }
+        catch { NSLog("ClaudeCodeNotify: failed to start server: \(error)") }
     }
 
     func stop() { server?.stop(); server = nil }
 
-    // MARK: - Apresentação
+    // MARK: - Presentation
 
     private func present(_ event: NotificationEvent) {
         guard event.shouldNotify else { return }
@@ -51,19 +51,19 @@ final class NotificationService {
         let shouldShowCard = !hostIsFocused || preferences.showCardWhenHostFocused
         let shouldPlaySound = !hostIsFocused || preferences.playSoundWhenHostFocused
 
-        NSLog("ClaudeCodeNotify: notificação kind=\(event.kind) proj=\(event.projectName) hostFocused=\(hostIsFocused) card=\(shouldShowCard) sound=\(shouldPlaySound)")
+        NSLog("ClaudeCodeNotify: notification kind=\(event.kind) proj=\(event.projectName) hostFocused=\(hostIsFocused) card=\(shouldShowCard) sound=\(shouldPlaySound)")
 
-        // Som sem card não altera foco nem desmonta uma notificação que já esteja visível.
+        // Sound without card doesn't change focus or dismiss a visible notification.
         guard shouldShowCard else {
             if shouldPlaySound { NotificationSound.play(pref.soundName) }
             return
         }
 
-        teardownPanel(restoreFocus: false)      // limpa anterior sem mexer no foco
+        teardownPanel(restoreFocus: false)      // clears previous without changing focus
         previousApp = frontmostApp
         currentEvent = event
 
-        // O fallback pro app anterior serve só para o "go to terminal", nunca para suprimir.
+        // The fallback to previous app is only for "go to terminal", never to suppress.
         let hostApp = resolvedHostApp ?? previousApp
         currentHostApp = hostApp
 
@@ -73,7 +73,7 @@ final class NotificationService {
         panel.positionTopCenter()
         self.panel = panel
 
-        // Captura o teclado: ativa o app e torna o painel key (escolha do modo notificador).
+        // Captures keyboard: activates app and makes panel key (intentional for notifier mode).
         NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
 
@@ -84,17 +84,17 @@ final class NotificationService {
 
     private func goToTerminal() {
         TerminalActivator.activate(currentHostApp)
-        teardownPanel(restoreFocus: false) // o terminal já foi ativado
+        teardownPanel(restoreFocus: false) // terminal is already activated
     }
 
-    // MARK: - Monitores de teclado/clique
+    // MARK: - Keyboard/click monitors
 
     private func installMonitors() {
         removeMonitors()
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] e in
             guard let self, self.panel != nil else { return e }
             switch e.keyCode {
-            case 36, 76:           // Return / Enter do teclado numérico
+            case 36, 76:           // Return / Enter from numeric keypad
                 self.goToTerminal(); return nil
             case 53:               // Esc
                 self.teardownPanel(restoreFocus: true); return nil
@@ -102,7 +102,7 @@ final class NotificationService {
                 return e
             }
         }
-        // Clique fora (ou em qualquer lugar) também leva ao terminal? Não — clique no painel fecha.
+        // Click outside (or anywhere) also goes to terminal? No — click on panel closes.
         clickMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] e in
             guard let self, let panel = self.panel else { return e }
             if e.window == panel { self.goToTerminal(); return nil }
@@ -118,7 +118,7 @@ final class NotificationService {
 
     private func scheduleAutoDismiss(after seconds: TimeInterval) {
         dismissTask?.cancel()
-        guard seconds > 0 else { return } // 0 = fica até o usuário fechar
+        guard seconds > 0 else { return } // 0 = stays until user closes
         dismissTask = Task { [weak self] in
             try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
             guard !Task.isCancelled else { return }

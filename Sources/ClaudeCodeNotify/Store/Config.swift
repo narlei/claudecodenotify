@@ -1,7 +1,7 @@
 import Foundation
 
-/// Configuração persistida em config.json: token secreto (gerado uma vez) + flag de
-/// onboarding. A porta NÃO fica aqui (é efêmera; vai no portFile a cada launch).
+/// Persisted in config.json: secret token (generated once) + onboarding flag.
+/// Port does NOT go here (it's ephemeral; goes to portFile at each launch).
 struct Config: Codable {
     var token: String
     var onboardingShown: Bool
@@ -15,7 +15,7 @@ struct Config: Codable {
 
     enum CodingKeys: String, CodingKey { case token, onboardingShown, donationHidden }
 
-    // Decode resiliente: campos novos ausentes em config.json antigo não regeneram o token.
+    // Resilient decode: new fields missing from old config.json don't regenerate the token.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         token = try c.decode(String.self, forKey: .token)
@@ -23,7 +23,7 @@ struct Config: Codable {
         donationHidden = (try? c.decode(Bool.self, forKey: .donationHidden)) ?? false
     }
 
-    /// Carrega do disco; se não existir, gera um token novo e grava.
+    /// Loads from disk; if not found, generates new token and saves.
     static func loadOrCreate() -> Config {
         let url = AppPaths.configFile
         if let data = try? Data(contentsOf: url),
@@ -39,24 +39,24 @@ struct Config: Codable {
         guard let data = try? JSONEncoder().encode(self) else { return }
         _ = try? AppPaths.ensureSupportDirectory()
         try? data.write(to: AppPaths.configFile, options: .atomic)
-        // config tem o token — restringe a 600.
+        // config has the token — restrict to 600.
         try? FileManager.default.setAttributes([.posixPermissions: 0o600],
                                                ofItemAtPath: AppPaths.configFile.path)
     }
 
-    /// Marca o onboarding como visto e persiste.
+    /// Marks onboarding as seen and persists.
     mutating func markOnboardingShown() {
         onboardingShown = true
         save()
     }
 
-    /// Esconde a seção de doação ("já doei") e persiste.
+    /// Hides the donation section ("already donated") and persists.
     mutating func hideDonation() {
         donationHidden = true
         save()
     }
 
-    /// 32 bytes aleatórios em base64url (sem padding) — seguro e shell-friendly.
+    /// 32 random bytes in base64url (no padding) — secure and shell-friendly.
     private static func generateToken() -> String {
         var bytes = [UInt8](repeating: 0, count: 32)
         for i in bytes.indices { bytes[i] = UInt8.random(in: 0...255) }
