@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Abre/reusa a janela de Preferências.
+/// Opens/reuses the Preferences window.
 @MainActor
 final class PreferencesWindowController {
     static let shared = PreferencesWindowController()
@@ -18,7 +18,7 @@ final class PreferencesWindowController {
         win.title = "ClaudeCodeNotify — Preferences"
         win.styleMask = [.titled, .closable]
         win.isReleasedWhenClosed = false
-        win.setContentSize(NSSize(width: 460, height: 540)) // garante o tamanho antes de centralizar
+        win.setContentSize(NSSize(width: 460, height: 540)) // ensures size before centering
         win.center()
         window = win
         NSApp.activate(ignoringOtherApps: true)

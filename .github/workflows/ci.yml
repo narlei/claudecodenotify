@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
 
-# Cancela runs antigos da mesma ref quando um novo push chega.
+# Cancels old runs of the same ref when a new push arrives.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -23,16 +23,16 @@ jobs:
       - name: Build (release)
         run: swift build -c release
 
-      - name: Testes + cobertura
+      - name: Tests + coverage
         run: swift test --enable-code-coverage
 
-      - name: Relatório de cobertura
+      - name: Coverage report
         run: ./Scripts/coverage.sh
 
-      - name: Montar .app (Info.plist + ad-hoc sign)
+      - name: Assemble .app (Info.plist + ad-hoc sign)
         run: ./Scripts/build-app.sh release
 
-      - name: Verificar assinatura
+      - name: Verify signature
         run: codesign --verify --verbose ClaudeCodeNotify.app
 
   shellcheck:
@@ -41,8 +41,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Instalar shellcheck
+      - name: Install shellcheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
 
-      - name: Lint dos scripts
+      - name: Lint scripts
         run: shellcheck Scripts/*.sh

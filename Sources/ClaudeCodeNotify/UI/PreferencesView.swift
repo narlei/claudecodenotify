@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Store observável das preferências — salva no disco a cada mudança.
+/// Observable preferences store — saves to disk on every change.
 @MainActor
 final class PreferencesStore: ObservableObject {
     @Published var prefs: Preferences {
@@ -9,7 +9,7 @@ final class PreferencesStore: ObservableObject {
     init() { prefs = Preferences.load() }
 }
 
-/// Janela de Preferências: comportamento em foco + duração e som por tipo.
+/// Preferences window: behavior when focused + duration and sound per type.
 struct PreferencesView: View {
     @StateObject private var store = PreferencesStore()
 
@@ -42,7 +42,7 @@ struct PreferencesView: View {
 
     @ViewBuilder
     private func typeRow(_ pref: Binding<Preferences.TypePref>) -> some View {
-        // Duração
+        // Duration
         HStack {
             Text("Time on screen")
             Spacer()
@@ -54,7 +54,7 @@ struct PreferencesView: View {
             Stepper("", value: pref.durationSeconds, in: 0...120, step: 1)
                 .labelsHidden()
         }
-        // Som
+        // Sound
         HStack {
             Picker("Sound", selection: Binding(
                 get: { pref.wrappedValue.soundName ?? "" },

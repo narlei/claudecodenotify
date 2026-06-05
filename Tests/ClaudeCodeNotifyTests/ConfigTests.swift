@@ -9,25 +9,25 @@ final class ConfigTests: SandboxedTestCase {
         XCTAssertFalse(created.onboardingShown)
         XCTAssertFalse(created.donationHidden)
         XCTAssertTrue(FileManager.default.fileExists(atPath: AppPaths.configFile.path),
-                      "config.json deveria ter sido gravado")
+                      "config.json should have been written")
 
-        // segundo load reaproveita o mesmo token (não regenera)
+        // second load reuses the same token (doesn't regenerate)
         let reloaded = Config.loadOrCreate()
         XCTAssertEqual(reloaded.token, created.token)
     }
 
     func testTokenIsBase64URLSafe() {
         let token = Config.loadOrCreate().token
-        XCTAssertFalse(token.contains("+"), "token deveria ser base64url (sem +)")
-        XCTAssertFalse(token.contains("/"), "token deveria ser base64url (sem /)")
-        XCTAssertFalse(token.contains("="), "token deveria ser base64url (sem padding)")
+        XCTAssertFalse(token.contains("+"), "token should be base64url (no +)")
+        XCTAssertFalse(token.contains("/"), "token should be base64url (no /)")
+        XCTAssertFalse(token.contains("="), "token should be base64url (no padding)")
     }
 
     func testConfigFileHas0600Permissions() throws {
         _ = Config.loadOrCreate()
         let attrs = try FileManager.default.attributesOfItem(atPath: AppPaths.configFile.path)
         let perms = attrs[.posixPermissions] as? NSNumber
-        XCTAssertEqual(perms?.int16Value, 0o600, "config.json (tem o token) deveria ser 0600")
+        XCTAssertEqual(perms?.int16Value, 0o600, "config.json (has the token) should be 0600")
     }
 
     func testMarkOnboardingShownPersists() {
@@ -43,7 +43,7 @@ final class ConfigTests: SandboxedTestCase {
     }
 
     func testResilientDecodeKeepsTokenWhenNewFieldsMissing() throws {
-        // config.json "antigo" só com token — não deve quebrar nem regenerar.
+        // old config.json with just token — should not break or regenerate.
         _ = try? AppPaths.ensureSupportDirectory()
         try #"{"token":"legacy-token"}"#.write(to: AppPaths.configFile, atomically: true, encoding: .utf8)
 

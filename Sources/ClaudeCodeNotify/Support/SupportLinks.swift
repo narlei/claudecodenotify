@@ -1,20 +1,20 @@
 import AppKit
 
-/// Links/ações de doação ("pague um café"). Provedor é só uma URL — fácil de trocar.
-/// Ko-fi/PayPal só aparecem no menu quando preenchidos; o Pix sempre (chave copiável).
+/// Donation links/actions ("buy me a coffee"). Provider is just a URL — easy to swap.
+/// Ko-fi/PayPal appear in menu only when filled; Pix always (key is copyable).
 enum SupportLinks {
-    /// Ko-fi. nil = oculto.
+    /// Ko-fi. nil = hidden.
     static let koFi: URL? = URL(string: "https://ko-fi.com/narlei")
-    /// PayPal.me. nil = oculto.
+    /// PayPal.me. nil = hidden.
     static let payPal: URL? = URL(string: "https://paypal.me/narlei")
-    /// Chave Pix (copia pro clipboard).
+    /// Pix key (copies to clipboard).
     static let pixKey = "contato@narlei.com"
 
     static func open(_ url: URL) {
         NSWorkspace.shared.open(url)
     }
 
-    /// Copia a chave Pix e confirma.
+    /// Copies the Pix key and confirms.
     static func copyPixKey() {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(pixKey, forType: .string)

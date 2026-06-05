@@ -1,12 +1,13 @@
 import SwiftUI
 
-/// Tela de boas-vindas (primeiro launch). Explica o app e deixa conectar/configurar já aqui.
+/// Welcome screen (first launch). Explains the app and lets you connect/configure right here.
 struct OnboardingView: View {
     let token: String
     let onClose: () -> Void
 
     @State private var connected = HookInstaller.isInstalled
     @State private var loginEnabled = LoginItem.isEnabled
+    @State private var keychainGranted = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -50,9 +51,35 @@ struct OnboardingView: View {
                     "Look for the bell icon at the top-right. Click it for Connect/Disconnect, Preferences and Open at Login.")
             feature("slider.horizontal.3", .green, "Make it yours",
                     "Set how long each notification stays and which sound it plays (or none) in Preferences.")
+            featureUsage
         }
         .padding(.horizontal, 28)
         .padding(.vertical, 22)
+    }
+
+    private var featureUsage: some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: "chart.bar.fill")
+                .font(.system(size: 22))
+                .foregroundStyle(.cyan)
+                .frame(width: 30)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Live usage bars").font(.headline)
+                (Text("Each notification shows your Claude Code 5-hour and weekly usage at a glance. ")
+                    + Text("Requires Claude Code CLI installed").bold()
+                    + Text(" and keychain access."))
+                    .font(.subheadline).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button {
+                    NSWorkspace.shared.open(URL(string: "https://code.claude.com/docs/en/quickstart#step-1-install-claude-code")!)
+                } label: {
+                    Label("Install Claude Code CLI", systemImage: "arrow.up.right")
+                        .font(.caption)
+                }
+                .buttonStyle(.link)
+            }
+            Spacer(minLength: 0)
+        }
     }
 
     private func feature(_ icon: String, _ color: Color, _ title: String, _ desc: String) -> some View {
@@ -103,6 +130,28 @@ struct OnboardingView: View {
                 Spacer()
                 Button("Open Preferences…") { PreferencesWindowController.shared.show() }
             }
+
+            Divider()
+
+            Button {
+                Task {
+                    let granted = await UsageFetcher.fetch() != nil
+                    keychainGranted = granted
+                }
+            } label: {
+                Label(keychainGranted ? "Keychain access granted" : "Grant keychain access for usage bars",
+                      systemImage: keychainGranted ? "checkmark.circle.fill" : "key.fill")
+                    .frame(maxWidth: .infinity)
+            }
+            .controlSize(.large)
+            .buttonStyle(.bordered)
+            .tint(keychainGranted ? .green : .cyan)
+            .disabled(keychainGranted)
+
+            (Text("Click ") + Text("Always Allow").bold() + Text(" on the keychain prompt so usage bars work silently from then on. Requires Claude Code CLI to be installed."))
+                .font(.caption).foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
 
             Button("Get Started", action: onClose)
                 .controlSize(.large)

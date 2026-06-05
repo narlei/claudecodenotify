@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/icon.png" width="128" alt="ClaudeCodeNotify icon">
+  <img src="website/assets/icon.png" width="128" alt="ClaudeCodeNotify icon">
 </p>
 
 <h1 align="center">ClaudeCodeNotify</h1>
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/notifications.png" width="520" alt="The three notification types: permission, idle, and finished">
+  <img src="website/assets/notifications.png" width="520" alt="The three notification types: permission, idle, and finished">
 </p>
 
 A macOS **menu bar** app that pops a **floating notification in the center of your screen** when Claude Code needs you — when it **asks for permission**, is **idle waiting for input**, or **finishes a task**. Press **Enter** (or click) and it jumps you straight to the terminal where Claude is running. Built for people who leave Claude Code working and don't want to babysit the terminal.
@@ -60,6 +60,7 @@ When shown, the notification appears centered at the top, over anything (includi
 - **↵ Enter → jump to the terminal** — detects the host app (Ghostty, iTerm, Terminal, Cursor, VS Code, WezTerm, …) via `$TERM_PROGRAM` and brings it to the front.
 - **🎚️ Make it yours** — per-type **duration** (`0` = stays until dismissed) and **sound** (system sounds or none, with preview); plus how the card/sound behaves while Claude's terminal or editor is already focused.
 - **📊 Lives in your menu bar** — a bell icon with a green/red connection dot; connect or disconnect anytime. No Dock icon.
+- **⚡ Live usage bars** — every notification and the menu show your Claude Code **5-hour rolling** and **weekly** usage, color-coded (green → yellow → orange → red) with a reset countdown. Reads your OAuth token directly from the macOS Keychain — no API key needed. Requires the Claude Code CLI to be installed.
 - **🔒 Local & private** — a tiny server listening only on `127.0.0.1`, validated with a token. Nothing leaves your machine.
 - **🚀 Open at Login** via `SMAppService`.
 
@@ -68,19 +69,19 @@ When shown, the notification appears centered at the top, over anything (includi
 <table>
   <tr>
     <td width="50%" valign="top">
-      <img src="docs/onboarding.png" alt="Welcome / onboarding window"><br>
+      <img src="website/assets/onboarding.png" alt="Welcome / onboarding window"><br>
       <sub><b>Onboarding</b> — walks you through setup and confirms the connection.</sub>
     </td>
     <td width="50%" valign="top">
-      <img src="docs/preferences.png" alt="Preferences window"><br>
+      <img src="website/assets/preferences.png" alt="Preferences window"><br>
       <sub><b>Preferences</b> — tune display time and sound for each notification type.</sub>
     </td>
   </tr>
 </table>
 
 <p align="center">
-  <img src="docs/menu.png" width="280" alt="Menu bar menu with connection status dot"><br>
-  <sub><b>Menu bar</b> — connection status, preferences, and check for updates.</sub>
+  <img src="website/assets/menu.png" width="280" alt="Menu bar menu with connection status dot"><br>
+  <sub><b>Menu bar</b> — connection status, live usage bars, preferences, and check for updates.</sub>
 </p>
 
 ## Installation

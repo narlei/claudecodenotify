@@ -1,9 +1,9 @@
 import AppKit
 
-// Bootstrap manual do NSApplication (sem @main / sem storyboard).
-// LSUIElement no Info.plist garante "sem Dock"; reforçamos .accessory aqui
-// pro caso de rodar via `swift run` sem bundle.
-// Operações headless (usadas pelo Makefile / testes) — não sobem a UI.
+// Manual NSApplication bootstrap (no @main / no storyboard).
+// LSUIElement in Info.plist ensures "no Dock"; we reinforce .accessory here
+// in case running via `swift run` without bundle.
+// Headless operations (used by Makefile / tests) — don't bring up the UI.
 if CommandLine.arguments.contains("--uninstall") {
     do {
         try HookInstaller.uninstall()
@@ -64,7 +64,7 @@ if let idx = CommandLine.arguments.firstIndex(of: "--render-icon") {
 }
 
 let app = NSApplication.shared
-app.setActivationPolicy(.accessory) // menu bar, sem Dock (reforça o LSUIElement do Info.plist)
+app.setActivationPolicy(.accessory) // menu bar, no Dock (reinforces LSUIElement from Info.plist)
 
 let delegate = AppDelegate()
 app.delegate = delegate

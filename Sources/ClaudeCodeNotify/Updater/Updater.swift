@@ -25,7 +25,7 @@ final class Updater {
     }
     
     func silentCheck() async {
-        // Limita a checagem silenciosa a 1 vez por hora para evitar limites da API do GitHub.
+        // Limits silent check to once per hour to avoid GitHub API limits.
         if let last = lastCheckTime, Date().timeIntervalSince(last) < 3600 { return }
         lastCheckTime = Date()
         
@@ -57,7 +57,7 @@ final class Updater {
                 let currentVersion = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "Dev"
                 
                 if currentVersion == "Dev" {
-                    // Quando rodamos via `make run` (swift run), não há pacote .app nem Info.plist.
+                    // When running via `make run` (swift run), there's no .app bundle or Info.plist.
                     if explicit {
                         self.showUpdateAvailable(latestVersion: latestVersion, currentVersion: "Dev", url: release.htmlUrl)
                     }
@@ -93,7 +93,7 @@ final class Updater {
         alert.addButton(withTitle: "Download")
         alert.addButton(withTitle: "Cancel")
         
-        // Ativamos o app para garantir que o alert seja visível
+        // Activate the app to ensure the alert is visible
         NSApp.activate(ignoringOtherApps: true)
         
         let response = alert.runModal()

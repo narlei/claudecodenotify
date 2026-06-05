@@ -1,13 +1,13 @@
 import AppKit
 
-/// Painel da notificação. Centralizado no topo, por cima de tudo (inclusive fullscreen).
-/// Diferente do design antigo, ESTE captura o teclado (vira key) pra o Enter funcionar —
-/// é uma escolha consciente do modo notificador.
+/// Notification panel. Centered at the top, above everything (including fullscreen).
+/// Unlike the old design, THIS captures keyboard (becomes key) so Enter works —
+/// an intentional choice for notifier mode.
 final class NotificationPanel: NSPanel {
     init(contentView: NSView) {
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 420, height: 96),
-            styleMask: [.borderless], // sem titlebar/chrome (evita a linha preta no topo)
+            styleMask: [.borderless], // no titlebar/chrome (avoids black line at the top)
             backing: .buffered,
             defer: false
         )

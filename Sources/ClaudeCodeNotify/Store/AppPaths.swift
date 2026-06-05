@@ -1,12 +1,12 @@
 import Foundation
 
-/// Localizações no disco usadas pelo app. Tudo vive em
+/// Disk locations used by the app. Everything lives in
 /// ~/Library/Application Support/ClaudeCodeNotify/
 enum AppPaths {
     static let bundleIdentifier = "com.narlei.ClaudeCodeNotify"
 
-    /// Home base. Em produção é o home real; `CCNOTIFY_HOME` permite sandbox em testes
-    /// (FileManager.homeDirectoryForCurrentUser ignora $HOME, por isso a env própria).
+    /// Home base. In production it's the real home; `CCNOTIFY_HOME` allows sandboxing in tests
+    /// (FileManager.homeDirectoryForCurrentUser ignores $HOME, so we have our own env).
     static var home: URL {
         if let override = ProcessInfo.processInfo.environment["CCNOTIFY_HOME"], !override.isEmpty {
             return URL(fileURLWithPath: override, isDirectory: true)
@@ -19,29 +19,29 @@ enum AppPaths {
         home.appendingPathComponent("Library/Application Support/ClaudeCodeNotify", isDirectory: true)
     }
 
-    /// token secreto + flag de seed da allowlist
+    /// secret token + allowlist seed flag
     static var configFile: URL { supportDirectory.appendingPathComponent("config.json") }
 
-    /// porta efêmera atual; reescrita a cada launch e lida pelo bridge.sh em runtime
+    /// current ephemeral port; rewritten at each launch and read by bridge.sh at runtime
     static var portFile: URL { supportDirectory.appendingPathComponent("port") }
 
-    /// preferências do usuário (duração + som por tipo de notificação)
+    /// user preferences (duration + sound per notification type)
     static var preferencesFile: URL { supportDirectory.appendingPathComponent("preferences.json") }
 
-    /// Diretório do bridge.sh. SEM espaço no caminho de propósito: o Claude Code executa o
-    /// `command` do hook quebrando em espaços, então "Application Support" (com espaço) falha.
-    /// O store (config/port/allowlist) fica em Application Support; só o bridge mora aqui.
+    /// Bridge.sh directory. No spaces in path intentionally: Claude Code executes the hook
+    /// `command` by splitting on spaces, so "Application Support" (with space) fails.
+    /// The store (config/port/allowlist) lives in Application Support; only bridge lives here.
     static var bridgeDirectory: URL { home.appendingPathComponent(".ccnotify", isDirectory: true) }
 
-    /// bridge.sh instalado (referenciado pelo hook no settings.json) — caminho sem espaços.
+    /// Installed bridge.sh (referenced by hook in settings.json) — path without spaces.
     static var bridgeScript: URL { bridgeDirectory.appendingPathComponent("bridge.sh") }
 
-    /// ~/.claude/settings.json (global do usuário)
+    /// ~/.claude/settings.json (global user settings)
     static var claudeSettings: URL {
         home.appendingPathComponent(".claude/settings.json")
     }
 
-    /// Garante que o diretório de suporte existe. Retorna a URL.
+    /// Ensures support directory exists. Returns the URL.
     @discardableResult
     static func ensureSupportDirectory() throws -> URL {
         let dir = supportDirectory
