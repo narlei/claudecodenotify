@@ -21,7 +21,7 @@ struct NotificationView: View {
                         .font(.headline)
                         .fixedSize(horizontal: false, vertical: true)
                     if let subtitle, !subtitle.isEmpty {
-                        Text(subtitle)
+                        Text(markdown(subtitle))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .lineLimit(8)                                  // up to 8 lines; truncates beyond
@@ -71,6 +71,18 @@ struct NotificationView: View {
         case .stop:              return event.lastAssistantMessage
         case .other:             return event.message
         }
+    }
+
+    /// Parses markdown into an AttributedString, falling back to plain text on failure.
+    /// Uses `.full` interpretation so soft line breaks in the message are preserved.
+    private func markdown(_ string: String) -> AttributedString {
+        let options = AttributedString.MarkdownParsingOptions(
+            allowsExtendedAttributes: true,
+            interpretedSyntax: .inlineOnlyPreservingWhitespace,
+            failurePolicy: .returnPartiallyParsedIfPossible
+        )
+        return (try? AttributedString(markdown: string, options: options))
+            ?? AttributedString(string)
     }
 
     private var icon: String {
