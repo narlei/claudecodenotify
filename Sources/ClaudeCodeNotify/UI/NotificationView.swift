@@ -5,38 +5,49 @@ struct NotificationView: View {
     let event: NotificationEvent
     var hostAppName: String? = nil
 
-    var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            Image(systemName: icon)
-                .font(.system(size: 26))
-                .foregroundStyle(tint)
-                .frame(width: 34)
+    @State private var usage: UsageData? = nil
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title)
-                    .font(.headline)
-                    .fixedSize(horizontal: false, vertical: true)
-                if let subtitle, !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(8)                                  // até 8 linhas; trunca além
-                        .fixedSize(horizontal: false, vertical: true)  // cresce/encolhe com o texto
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 14) {
+                Image(systemName: icon)
+                    .font(.system(size: 26))
+                    .foregroundStyle(tint)
+                    .frame(width: 34)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.headline)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let subtitle, !subtitle.isEmpty {
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(8)                                  // até 8 linhas; trunca além
+                            .fixedSize(horizontal: false, vertical: true)  // cresce/encolhe com o texto
+                    }
+                    Text("⏎ go to \(hostAppName ?? "Claude")   ·   esc dismiss")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 2)
                 }
-                Text("⏎ go to \(hostAppName ?? "Claude")   ·   esc dismiss")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .padding(.top, 2)
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
+            .padding(16)
+
+            if let usage {
+                UsageBarsView(usage: usage)
+            }
         }
-        .padding(16)
         .frame(width: 420)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .strokeBorder(.white.opacity(0.08))
         )
+        .task {
+            usage = await UsageFetcher.fetch()
+        }
     }
 
     private var title: String {
