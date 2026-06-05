@@ -26,6 +26,12 @@ final class StatusItemController: NSObject {
         menu.delegate = self
         statusItem.menu = menu
         rebuildMenu()
+
+        Task {
+            if let usage = await UsageFetcher.fetch() {
+                ResetNotificationScheduler.schedule(from: usage)
+            }
+        }
     }
 
     private func rebuildMenu() {
@@ -189,6 +195,7 @@ extension StatusItemController: NSMenuDelegate {
         }
         Task {
             let usage = await UsageFetcher.fetch()
+            if let usage { ResetNotificationScheduler.schedule(from: usage) }
             await MainActor.run {
                 self.menuUsage = usage
                 self.rebuildMenu()
