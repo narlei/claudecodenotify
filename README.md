@@ -60,6 +60,7 @@ When shown, the notification appears centered at the top, over anything (includi
 - **↵ Enter → jump to the terminal** — detects the host app (Ghostty, iTerm, Terminal, Cursor, VS Code, WezTerm, …) via `$TERM_PROGRAM` and brings it to the front.
 - **🎚️ Make it yours** — per-type **duration** (`0` = stays until dismissed) and **sound** (system sounds or none, with preview); plus how the card/sound behaves while Claude's terminal or editor is already focused.
 - **📊 Lives in your menu bar** — a bell icon with a green/red connection dot; connect or disconnect anytime. No Dock icon.
+- **⚡ Live usage bars** — every notification and the menu show your Claude Code **5-hour rolling** and **weekly** usage, color-coded (green → yellow → orange → red) with a reset countdown. Reads your OAuth token directly from the macOS Keychain — no API key needed. Requires the Claude Code CLI to be installed.
 - **🔒 Local & private** — a tiny server listening only on `127.0.0.1`, validated with a token. Nothing leaves your machine.
 - **🚀 Open at Login** via `SMAppService`.
 
@@ -80,7 +81,7 @@ When shown, the notification appears centered at the top, over anything (includi
 
 <p align="center">
   <img src="website/assets/menu.png" width="280" alt="Menu bar menu with connection status dot"><br>
-  <sub><b>Menu bar</b> — connection status, preferences, and check for updates.</sub>
+  <sub><b>Menu bar</b> — connection status, live usage bars, preferences, and check for updates.</sub>
 </p>
 
 ## Installation
