@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 
 /// Item de menu bar: ícone de sino + menu (conectar/desconectar o Claude Code, abrir no login, sair).
 @MainActor
@@ -6,6 +7,7 @@ final class StatusItemController: NSObject {
     private let statusItem: NSStatusItem
     private var config: Config
     private var token: String { config.token }
+    private var menuUsage: UsageData? = nil
 
     init(config: Config) {
         self.config = config
@@ -35,6 +37,20 @@ final class StatusItemController: NSObject {
                                   action: nil, keyEquivalent: "")
         header.isEnabled = false
         header.image = statusDot(connected ? .systemGreen : .systemRed)
+
+        if let usage = menuUsage {
+            menu.addItem(.separator())
+            let usageItem = NSMenuItem()
+            usageItem.isEnabled = false
+            let hostingView = NSHostingView(rootView:
+                UsageBarsView(usage: usage, horizontalPadding: 17)
+                    .frame(width: 260)
+                    .environment(\.colorScheme, .dark)
+            )
+            hostingView.frame = CGRect(origin: .zero, size: hostingView.fittingSize)
+            usageItem.view = hostingView
+            menu.addItem(usageItem)
+        }
 
         menu.addItem(.separator())
         if connected {
@@ -169,6 +185,13 @@ extension StatusItemController: NSMenuDelegate {
             await Updater.shared.silentCheck()
             if !hadUpdate && Updater.shared.hasNewVersion {
                 await MainActor.run { self.rebuildMenu() }
+            }
+        }
+        Task {
+            let usage = await UsageFetcher.fetch()
+            await MainActor.run {
+                self.menuUsage = usage
+                self.rebuildMenu()
             }
         }
         rebuildMenu() // reflete o estado real do settings.json a cada abertura

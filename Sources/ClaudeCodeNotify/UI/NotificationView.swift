@@ -5,6 +5,7 @@ struct NotificationView: View {
     let event: NotificationEvent
     var hostAppName: String? = nil
 
+    var previewUsage: UsageData? = nil
     @State private var usage: UsageData? = nil
 
     var body: some View {
@@ -35,8 +36,8 @@ struct NotificationView: View {
             }
             .padding(16)
 
-            if let usage {
-                UsageBarsView(usage: usage)
+            if let display = usage ?? previewUsage {
+                UsageBarsView(usage: display)
             }
         }
         .frame(width: 420)
@@ -45,7 +46,11 @@ struct NotificationView: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .strokeBorder(.white.opacity(0.08))
         )
+        .onAppear {
+            if let previewUsage { usage = previewUsage }
+        }
         .task {
+            guard previewUsage == nil else { return }
             usage = await UsageFetcher.fetch()
         }
     }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UsageBarsView: View {
     let usage: UsageData
+    var horizontalPadding: CGFloat = 16
 
     var body: some View {
         VStack(spacing: 6) {
@@ -9,7 +10,7 @@ struct UsageBarsView: View {
             UsageBarRow(label: "5h", util: usage.util5h, reset: usage.reset5h)
             UsageBarRow(label: "7d", util: usage.util7d, reset: usage.reset7d)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, horizontalPadding)
         .padding(.bottom, 14)
         .padding(.top, 6)
     }
@@ -27,17 +28,13 @@ private struct UsageBarRow: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 16, alignment: .leading)
 
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(Color.white.opacity(0.1))
-                        .frame(height: 6)
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(barColor)
-                        .frame(width: geo.size.width * util, height: 6)
-                }
+            Canvas { ctx, size in
+                let track = Path(roundedRect: CGRect(x: 0, y: 0, width: size.width, height: size.height), cornerRadius: 2)
+                ctx.fill(track, with: .color(.white.opacity(0.1)))
+                let fill = Path(roundedRect: CGRect(x: 0, y: 0, width: size.width * util, height: size.height), cornerRadius: 2)
+                ctx.fill(fill, with: .color(barColor.opacity(0.55)))
             }
-            .frame(height: 6)
+            .frame(height: 4)
 
             Text("\(Int(util * 100))%")
                 .font(.caption2)

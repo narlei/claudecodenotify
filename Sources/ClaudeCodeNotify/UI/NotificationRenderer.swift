@@ -12,9 +12,18 @@ enum NotificationRenderer {
             (sample(event: "Stop", type: nil, msg: nil, last: "Done — refactored the auth module, added retries, and the full test suite is green."), "iTerm2")
         ].compactMap { ev, host in ev.map { ($0, host) } }
 
+        let sampleUsages = [
+            UsageData(util5h: 0.07,  reset5h: Date().addingTimeInterval(7200),
+                      util7d: 0.62,  reset7d: Date().addingTimeInterval(259200)),
+            UsageData(util5h: 0.68,  reset5h: Date().addingTimeInterval(3600),
+                      util7d: 0.88,  reset7d: Date().addingTimeInterval(172800)),
+            UsageData(util5h: 0.94,  reset5h: Date().addingTimeInterval(1800),
+                      util7d: 0.82,  reset7d: Date().addingTimeInterval(86400)),
+        ]
+
         let stack = VStack(spacing: 16) {
-            ForEach(Array(samples.enumerated()), id: \.offset) { _, pair in
-                NotificationView(event: pair.0, hostAppName: pair.1)
+            ForEach(Array(samples.enumerated()), id: \.offset) { i, pair in
+                NotificationView(event: pair.0, hostAppName: pair.1, previewUsage: sampleUsages[i])
             }
         }
         .padding(28)
@@ -24,7 +33,10 @@ enum NotificationRenderer {
         )
         .environment(\.colorScheme, .dark)
 
-        let renderer = ImageRenderer(content: stack)
+        let measurer = NSHostingView(rootView: stack)
+        let naturalSize = measurer.fittingSize
+
+        let renderer = ImageRenderer(content: stack.frame(width: naturalSize.width, height: naturalSize.height))
         renderer.scale = 2
         guard let image = renderer.nsImage, let tiff = image.tiffRepresentation,
               let bmp = NSBitmapImageRep(data: tiff),

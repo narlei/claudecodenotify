@@ -10,9 +10,17 @@ struct UsageData {
 enum UsageFetcher {
     private static let keychainService = "Claude Code-credentials"
     private static let apiURL = URL(string: "https://api.anthropic.com/v1/messages")!
+    private static let claudeCandidates = ["/opt/homebrew/bin/claude", "/usr/local/bin/claude", "claude"]
+    private static let refreshCooldown: TimeInterval = 5 * 60
+    private static var lastRefreshAttempt: Date = .distantPast
 
     static func fetch() async -> UsageData? {
+        return await fetchAttempt(retried: false)
+    }
+
+    private static func fetchAttempt(retried: Bool) async -> UsageData? {
         guard let token = readToken() else { return nil }
+
         var req = URLRequest(url: apiURL)
         req.httpMethod = "POST"
         req.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
@@ -30,6 +38,12 @@ enum UsageFetcher {
         guard let (_, response) = try? await URLSession.shared.data(for: req),
               let http = response as? HTTPURLResponse else { return nil }
 
+        if (http.statusCode == 401 || http.statusCode == 403), !retried {
+            let refreshed = await attemptCliRefresh()
+            if refreshed { return await fetchAttempt(retried: true) }
+            return nil
+        }
+
         let h = { (name: String) -> String? in http.value(forHTTPHeaderField: name) }
 
         guard let u5 = pct(h("anthropic-ratelimit-unified-5h-utilization")),
@@ -41,6 +55,25 @@ enum UsageFetcher {
             util7d: u7,
             reset7d: epoch(h("anthropic-ratelimit-unified-7d-reset"))
         )
+    }
+
+    private static func attemptCliRefresh() async -> Bool {
+        guard Date().timeIntervalSince(lastRefreshAttempt) > refreshCooldown else { return false }
+        lastRefreshAttempt = Date()
+        return await withCheckedContinuation { continuation in
+            let p = Process()
+            p.executableURL = URL(fileURLWithPath: claudeCandidates[0])
+            p.arguments = ["-p", "hi", "--max-budget-usd", "0.01"]
+            p.standardInput = FileHandle.nullDevice
+            p.standardOutput = FileHandle.nullDevice
+            p.standardError = FileHandle.nullDevice
+            p.terminationHandler = { _ in continuation.resume(returning: true) }
+            do {
+                try p.run()
+            } catch {
+                continuation.resume(returning: false)
+            }
+        }
     }
 
     private static func readToken() -> String? {

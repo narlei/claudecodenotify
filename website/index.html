@@ -69,8 +69,8 @@
 
         <div class="hero__visual">
           <img src="assets/notifications.png"
-               alt="Three ClaudeCodeNotify notification cards: Claude needs permission, Claude is waiting for you, and Claude finished — each showing a keystroke to return to the terminal."
-               width="952" height="702" loading="eager" />
+               alt="Three ClaudeCodeNotify notification cards: Claude needs permission, Claude is waiting for you, and Claude finished — each showing live usage bars."
+               width="952" height="1056" loading="eager" />
         </div>
       </div>
     </section>
@@ -113,6 +113,11 @@
             <p>A bell icon with a connection status dot. Connect or disconnect anytime — no Dock icon, no clutter.</p>
           </li>
           <li class="card">
+            <span class="card__icon" aria-hidden="true">⚡</span>
+            <h3>Live usage bars</h3>
+            <p>Every notification and menu shows your Claude Code 5-hour rolling and weekly usage — color-coded with a reset countdown.</p>
+          </li>
+          <li class="card">
             <span class="card__icon" aria-hidden="true">🔒</span>
             <h3>Local &amp; private</h3>
             <p>A tiny local server on <code>127.0.0.1</code> with a token. Nothing leaves your machine.</p>
@@ -140,12 +145,12 @@
             <figcaption>Preferences — tune display time and sound for each notification type (0 = until dismissed).</figcaption>
           </figure>
           <figure class="shot shot--wide">
-            <img src="assets/notifications.png" alt="The three notification types: permission request, idle waiting, and finished task." width="952" height="702" loading="lazy" />
-            <figcaption>The three notification types — permission, idle, and finished.</figcaption>
+            <img src="assets/notifications.png" alt="The three notification types: permission request, idle waiting, and finished task — each showing live 5h and 7d usage bars at the bottom." width="952" height="702" loading="lazy" />
+            <figcaption>The three notification types — permission, idle, and finished — each with live usage bars.</figcaption>
           </figure>
           <figure class="shot shot--wide">
-            <img src="assets/menu.png" alt="The menu bar dropdown showing a green 'Claude Code: connected' status, with Disconnect, Welcome, Preferences, Open at Login, Check for Updates, a Support ClaudeCodeNotify submenu, and Quit." width="299" height="295" loading="lazy" />
-            <figcaption>Lives in your menu bar — connection status, preferences, and check for updates.</figcaption>
+            <img src="assets/menu.png" alt="The menu bar dropdown showing a green 'Claude Code: connected' status, live 5h and 7d usage progress bars, with Disconnect, Welcome, Preferences, Open at Login, Check for Updates, a Support ClaudeCodeNotify submenu, and Quit." width="299" height="295" loading="lazy" />
+            <figcaption>Menu bar — connection status, live usage bars, preferences, and check for updates.</figcaption>
           </figure>
         </div>
       </div>
