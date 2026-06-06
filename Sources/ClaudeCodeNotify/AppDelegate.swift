@@ -17,9 +17,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.service = service
         self.statusItem = StatusItemController(config: config)
 
-        // First launch → welcome screen.
+        // First launch → welcome screen (no close button; only exit is "Get Started").
         if !config.onboardingShown {
-            OnboardingWindowController.shared.show(token: config.token)
+            OnboardingWindowController.shared.show(token: config.token, isFirstLaunch: true)
             config.markOnboardingShown()
         }
     }

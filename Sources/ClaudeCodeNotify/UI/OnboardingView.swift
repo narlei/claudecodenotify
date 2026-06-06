@@ -8,6 +8,12 @@ struct OnboardingView: View {
     @State private var connected = HookInstaller.isInstalled
     @State private var loginEnabled = LoginItem.isEnabled
     @State private var keychainGranted = false
+    @AppStorage("keychainDenied") private var keychainDenied: Bool = false
+
+    // Sequential confirmation prompts shown when Get Started is tapped
+    // without having completed hook install or keychain grant.
+    @State private var showHookPrompt = false
+    @State private var showKeychainPrompt = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -18,6 +24,34 @@ struct OnboardingView: View {
             actions
         }
         .frame(width: 480)
+        // Hook prompt: shown when user taps Get Started without installing the hook.
+        .alert("Install Claude Code hook?", isPresented: $showHookPrompt) {
+            Button("Install") {
+                try? HookInstaller.install(token: token)
+                connected = HookInstaller.isInstalled
+                proceedAfterHookStep()
+            }
+            Button("Skip", role: .cancel) {
+                proceedAfterHookStep()
+            }
+        } message: {
+            Text("The hook is what lets ClaudeCodeNotify know when Claude needs your attention. Without it you won't receive any notifications — you can always install it later from the menu bar.")
+        }
+        // Keychain prompt: shown after hook step when keychain access wasn't granted.
+        .alert("Allow keychain access?", isPresented: $showKeychainPrompt) {
+            Button("Allow") {
+                Task {
+                    let granted = await UsageFetcher.fetch() != nil
+                    keychainGranted = granted
+                    onClose()
+                }
+            }
+            Button("Skip", role: .cancel) {
+                onClose()
+            }
+        } message: {
+            Text("Grants access to your Claude Code credentials so the app can show your 5h and 7d rate-limit usage in the menu bar and on each notification.\n\nWhen macOS asks, choose Always Allow so it works silently from then on. You can enable this later in Preferences.")
+        }
     }
 
     // MARK: - Header
@@ -134,30 +168,72 @@ struct OnboardingView: View {
             Divider()
 
             Button {
+                if keychainDenied {
+                    UsageFetcher.resetKeychainPermission()
+                    keychainDenied = false
+                }
                 Task {
                     let granted = await UsageFetcher.fetch() != nil
                     keychainGranted = granted
                 }
             } label: {
-                Label(keychainGranted ? "Keychain access granted" : "Grant keychain access for usage bars",
-                      systemImage: keychainGranted ? "checkmark.circle.fill" : "key.fill")
-                    .frame(maxWidth: .infinity)
+                Label(
+                    keychainGranted  ? "Keychain access granted"
+                    : keychainDenied ? "Reset keychain access"
+                                     : "Grant keychain access for usage bars",
+                    systemImage: keychainGranted ? "checkmark.circle.fill"
+                               : keychainDenied  ? "arrow.counterclockwise"
+                                                 : "key.fill"
+                )
+                .frame(maxWidth: .infinity)
             }
             .controlSize(.large)
             .buttonStyle(.bordered)
-            .tint(keychainGranted ? .green : .cyan)
+            .tint(keychainGranted ? .green : keychainDenied ? .orange : .cyan)
             .disabled(keychainGranted)
 
-            (Text("Click ") + Text("Always Allow").bold() + Text(" on the keychain prompt so usage bars work silently from then on. Requires Claude Code CLI to be installed."))
-                .font(.caption).foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+            Group {
+                if keychainDenied {
+                    Text("You previously denied access. Click above to try again, then choose ")
+                    + Text("Always Allow").bold()
+                    + Text(" on the keychain prompt.")
+                } else {
+                    Text("Click ")
+                    + Text("Always Allow").bold()
+                    + Text(" on the keychain prompt so usage bars work silently from then on. Requires Claude Code CLI to be installed.")
+                }
+            }
+            .font(.caption).foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
 
-            Button("Get Started", action: onClose)
+            Button("Get Started", action: handleGetStarted)
                 .controlSize(.large)
-                .keyboardShortcut(.defaultAction)
                 .frame(maxWidth: .infinity)
         }
         .padding(28)
+    }
+
+    // MARK: - Get Started flow
+
+    /// Entry point for the Get Started button. Prompts for anything the user skipped,
+    /// then closes. Each step resolves before the next one appears.
+    private func handleGetStarted() {
+        if !connected {
+            showHookPrompt = true
+        } else {
+            proceedAfterHookStep()
+        }
+    }
+
+    private func proceedAfterHookStep() {
+        let needsKeychain = !keychainGranted
+                         && !keychainDenied
+                         && UsageFetcher.usageBarsEnabled
+        if needsKeychain {
+            showKeychainPrompt = true
+        } else {
+            onClose()
+        }
     }
 }

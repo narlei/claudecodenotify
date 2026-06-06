@@ -7,7 +7,7 @@ final class OnboardingWindowController {
     static let shared = OnboardingWindowController()
     private var window: NSWindow?
 
-    func show(token: String) {
+    func show(token: String, isFirstLaunch: Bool = false) {
         if let window {
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
@@ -19,7 +19,8 @@ final class OnboardingWindowController {
         }))
         let win = NSWindow(contentViewController: hosting)
         win.title = "Welcome — ClaudeCodeNotify"
-        win.styleMask = [.titled, .closable]
+        // On first launch hide the close button so the only exit is "Get Started".
+        win.styleMask = isFirstLaunch ? [.titled] : [.titled, .closable]
         win.isReleasedWhenClosed = false
         win.setContentSize(hosting.view.fittingSize)
         win.center()
