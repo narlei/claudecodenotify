@@ -1,3 +1,12 @@
+### What's New in 1.1.2
+
+- **Keychain deny fix** — denying the keychain prompt no longer causes it to re-appear on every menu open. The app remembers the decision and stops asking. Reset anytime in Preferences.
+- **No re-prompt after updates** — the OAuth token is now cached in the app's own keychain entry, so updating the app no longer triggers a new keychain permission dialog.
+- **Usage bars toggle** — new option in Preferences to disable usage bars entirely (useful if you use a custom Claude API without credentials in the system keychain).
+- **Smarter onboarding** — the welcome screen has no close button on first launch (exit only via Get Started). If you skip the hook install or keychain grant, Get Started walks you through each one with a confirmation prompt.
+
+---
+
 **ClaudeCodeNotify** is a macOS menu bar app that pops a floating notification when **Claude Code** needs you — when it asks for permission, goes idle waiting for input, or finishes a task. Press **Enter** and it jumps you straight to the terminal where Claude is running (Ghostty, iTerm, Terminal, Cursor, VS Code…). It's a *notifier, not a gatekeeper* — nothing is blocked.
 
 🌐 **Website:** https://claudecodenotify.narlei.com
