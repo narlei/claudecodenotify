@@ -9,7 +9,7 @@ VERSION := $(shell /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString
 
 .DEFAULT_GOAL := build
 
-.PHONY: setup build run app zip dmg release install uninstall clean help
+.PHONY: setup build run app dev zip dmg release install uninstall clean help
 
 help: ## Lists available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -44,6 +44,18 @@ dmg: app ## Creates $(DIST)/$(APP_NAME).dmg (drag to Applications)
 	./Scripts/make-dmg.sh
 
 release: zip dmg ## Builds all release artifacts (zip and dmg)
+
+dev: app ## Clears all app state (first-launch) and opens a fresh build
+	@echo "==> killing running instance (if any)"
+	@pkill -x ClaudeCodeNotify 2>/dev/null || true
+	@sleep 0.3
+	@echo "==> clearing app state"
+	@rm -f "$$HOME/Library/Application Support/ClaudeCodeNotify/config.json"
+	@rm -f "$$HOME/Library/Application Support/ClaudeCodeNotify/preferences.json"
+	@defaults delete com.narlei.ClaudeCodeNotify 2>/dev/null || true
+	@security delete-generic-password -s "ClaudeCodeNotify-usage-token" 2>/dev/null || true
+	@echo "==> launching"
+	@open $(APP)
 
 install: app ## Assembles and opens app (use menu to "Connect Claude Code")
 	open $(APP)

@@ -27,9 +27,13 @@ final class StatusItemController: NSObject {
         statusItem.menu = menu
         rebuildMenu()
 
-        Task {
-            if let usage = await UsageFetcher.fetch() {
-                ResetNotificationScheduler.schedule(from: usage)
+        // Skip the startup fetch on first launch: the keychain prompt must not appear
+        // before the welcome screen. The menu's menuWillOpen will fetch on first open.
+        if config.onboardingShown {
+            Task {
+                if let usage = await UsageFetcher.fetch() {
+                    ResetNotificationScheduler.schedule(from: usage)
+                }
             }
         }
     }

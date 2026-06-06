@@ -12,9 +12,29 @@ final class PreferencesStore: ObservableObject {
 /// Preferences window: behavior when focused + duration and sound per type.
 struct PreferencesView: View {
     @StateObject private var store = PreferencesStore()
+    @AppStorage("usageBarsEnabled") private var usageBarsEnabled: Bool = true
+    @AppStorage("keychainDenied") private var keychainDenied: Bool = false
 
     var body: some View {
         Form {
+            Section("Usage bars") {
+                Toggle("Show usage bars", isOn: $usageBarsEnabled)
+                if usageBarsEnabled && keychainDenied {
+                    HStack {
+                        Text("Keychain access was denied. Click to try again.")
+                            .font(.caption).foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Reset") {
+                            UsageFetcher.resetKeychainPermission()
+                            keychainDenied = false
+                        }
+                        .buttonStyle(.link)
+                    }
+                } else {
+                    Text("Shows your Claude Code 5h / 7d rate-limit usage in the menu bar and notifications. Requires Claude Code CLI. Disable if you use a custom API.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
             Section("When Claude's terminal or editor is focused") {
                 Toggle("Show notification card", isOn: $store.prefs.showCardWhenHostFocused)
                 Toggle("Play notification sound", isOn: $store.prefs.playSoundWhenHostFocused)
