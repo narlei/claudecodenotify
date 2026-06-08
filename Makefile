@@ -53,7 +53,6 @@ dev: app ## Clears all app state (first-launch) and opens a fresh build
 	@rm -f "$$HOME/Library/Application Support/ClaudeCodeNotify/config.json"
 	@rm -f "$$HOME/Library/Application Support/ClaudeCodeNotify/preferences.json"
 	@defaults delete com.narlei.ClaudeCodeNotify 2>/dev/null || true
-	@security delete-generic-password -s "ClaudeCodeNotify-usage-token" 2>/dev/null || true
 	@echo "==> launching"
 	@open $(APP)
 
