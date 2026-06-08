@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Download Stats — ClaudeCodeNotify</title>
+  <meta name="description" content="Live download statistics for ClaudeCodeNotify — downloads per release, all-time total." />
+  <meta name="robots" content="noindex" />
+
+  <link rel="icon" type="image/png" href="../assets/icon.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Stats-specific styles ── */
+    .stats-hero {
+      background:
+        radial-gradient(1000px 400px at 60% -20%, rgba(217,117,94,.18), transparent 60%),
+        radial-gradient(700px 400px at 0% 20%, rgba(194,65,12,.10), transparent 55%),
+        var(--cream);
+      padding: 72px 0 64px;
+      text-align: center;
+    }
+    .stats-hero__eyebrow {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(217,117,94,.12);
+      border: 1px solid rgba(194,65,12,.18);
+      border-radius: 999px;
+      padding: .35rem .9rem;
+      font-size: .85rem; font-weight: 600; color: var(--coral-deep);
+      margin-bottom: 1.2rem;
+    }
+    .stats-hero__title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      margin-bottom: .4rem;
+    }
+    .stats-hero__subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    /* ── Summary cards ── */
+    .stats-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin: 2.4rem 0 0;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 26px 28px;
+      box-shadow: var(--shadow-sm);
+      text-align: left;
+    }
+    .stat-card__label {
+      font-size: .82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      margin-bottom: .5rem;
+    }
+    .stat-card__value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .stat-card__value--coral { color: var(--coral-deep); }
+    .stat-card__sub {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-top: .4rem;
+    }
+
+    /* ── Releases table ── */
+    .releases-section { padding: 64px 0 80px; }
+    .releases-section .section__title { text-align: left; margin-bottom: 1.6rem; }
+
+    .release-list { display: flex; flex-direction: column; gap: 14px; }
+
+    .release-row {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      box-shadow: var(--shadow-sm);
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .release-row:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+    .release-row__header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 12px;
+    }
+    .release-row__tag {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .release-row__date {
+      font-size: .82rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+    .release-row__badge {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(217,117,94,.12);
+      border: 1px solid rgba(194,65,12,.16);
+      border-radius: 999px;
+      padding: .15rem .65rem;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--coral-deep);
+    }
+
+    .release-row__bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: .9rem;
+      margin-bottom: 10px;
+    }
+    .release-row__bar-track {
+      flex: 1;
+      height: 8px;
+      background: var(--cream-deep);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .release-row__bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--coral), var(--coral-deep));
+      border-radius: 999px;
+      transition: width .6s cubic-bezier(.4,0,.2,1);
+    }
+    .release-row__total {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .release-row__assets {
+      display: flex;
+      gap: 1.4rem;
+      flex-wrap: wrap;
+    }
+    .asset-item {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .82rem;
+      color: var(--muted);
+    }
+    .asset-item__icon { font-size: .9rem; }
+    .asset-item__name { font-weight: 500; color: var(--text); }
+
+    /* ── Loading / Error states ── */
+    .state-msg {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--muted);
+    }
+    .state-msg__spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--coral);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .state-msg__error { color: var(--coral-deep); font-weight: 600; }
+
+    /* ── Skeleton placeholders ── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--border) 25%, var(--cream-deep) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ── Chart ── */
+    .chart-section { padding: 0 0 64px; }
+    .chart-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 28px 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .chart-wrap canvas { display: block; width: 100% !important; }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      .stats-summary { grid-template-columns: 1fr; }
+      .release-row__header { flex-wrap: wrap; }
+      .release-row__date { margin-left: 0; }
+    }
+    @media (max-width: 480px) {
+      .stats-hero { padding: 48px 0 40px; }
+    }
+
+    /* ── Dark mode tweaks ── */
+    @media (prefers-color-scheme: dark) {
+      .stats-hero {
+        background:
+          radial-gradient(1000px 400px at 60% -20%, rgba(217,117,94,.20), transparent 60%),
+          radial-gradient(700px 400px at 0% 20%, rgba(194,65,12,.14), transparent 55%),
+          #1c1c1a;
+      }
+      .stat-card__value { color: #f4f2ea; }
+      .release-row__tag { color: #f4f2ea; }
+      .release-row__bar-track { background: #2a2a27; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ───────────────────────── Header ───────────────────────── -->
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="brand" href="index.html">
+        <img class="brand__icon" src="../assets/icon.png" alt="" width="36" height="36" />
+        <span class="brand__name">ClaudeCodeNotify</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="index.html#features">Features</a></li>
+        <li><a href="index.html#screenshots">Screenshots</a></li>
+        <li><a href="index.html#support">Support</a></li>
+      </ul>
+      <a class="btn btn--ghost nav__cta" href="https://github.com/narlei/claudecodenotify" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="main">
+
+    <!-- ───────────────────────── Stats hero ───────────────────────── -->
+    <section class="stats-hero" aria-labelledby="stats-title">
+      <div class="wrap wrap--narrow">
+        <div class="stats-hero__eyebrow">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 17l6-6 4 4 8-9"/></svg>
+          Live from GitHub
+        </div>
+        <h1 id="stats-title" class="stats-hero__title">Download Stats</h1>
+        <p class="stats-hero__subtitle">Updated every time you load this page.</p>
+
+        <div class="stats-summary" id="stats-summary" aria-live="polite">
+          <!-- filled by JS -->
+          <div class="stat-card">
+            <div class="stat-card__label">Total downloads</div>
+            <div class="stat-card__value stat-card__value--coral skeleton" style="width:80px;height:2.2rem;">&nbsp;</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">Releases</div>
+            <div class="stat-card__value skeleton" style="width:48px;height:2.2rem;">&nbsp;</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">Latest version</div>
+            <div class="stat-card__value skeleton" style="width:96px;height:2.2rem;">&nbsp;</div>
+          </div>
+        </div>
+
+        <div class="stats-summary" id="views-summary" aria-live="polite" style="margin-top:14px;">
+          <div class="stat-card">
+            <div class="stat-card__label">Page visits today</div>
+            <div class="stat-card__value skeleton" style="width:60px;height:2.2rem;">&nbsp;</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">Total visits</div>
+            <div class="stat-card__value skeleton" style="width:80px;height:2.2rem;">&nbsp;</div>
+          </div>
+          <div class="stat-card" style="grid-column: span 1;">
+            <div class="stat-card__label">Unique visitors / day</div>
+            <div class="stat-card__value skeleton" style="width:60px;height:2.2rem;">&nbsp;</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── Charts ───────────────────────── -->
+    <section class="chart-section" aria-labelledby="chart-downloads-title">
+      <div class="wrap">
+        <h2 class="section__title" style="text-align:left;margin-bottom:1rem;font-size:1.1rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Downloads by version</h2>
+        <div class="chart-wrap">
+          <canvas id="downloads-chart" height="260" aria-label="Downloads per version bar chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="chart-section" aria-labelledby="chart-views-title">
+      <div class="wrap">
+        <h2 class="section__title" style="text-align:left;margin-bottom:1rem;font-size:1.1rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Unique visits — last 30 days</h2>
+        <div class="chart-wrap">
+          <canvas id="views-chart" height="220" aria-label="Unique page visits last 30 days line chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── Per-release breakdown ───────────────────────── -->
+    <section class="releases-section" aria-labelledby="releases-title">
+      <div class="wrap">
+        <h2 id="releases-title" class="section__title">Downloads by version</h2>
+        <div id="release-list" class="release-list" aria-live="polite">
+          <div class="state-msg">
+            <div class="state-msg__spinner"></div>
+            <p>Loading releases…</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ───────────────────────── Footer ───────────────────────── -->
+  <footer class="site-footer">
+    <div class="wrap site-footer__inner">
+      <div class="site-footer__brand">
+        <img src="../assets/icon.png" alt="" width="28" height="28" />
+        <span>ClaudeCodeNotify</span>
+      </div>
+      <p class="site-footer__tag">Made for people who let Claude Code cook.</p>
+      <nav class="site-footer__links" aria-label="Footer">
+        <a href="https://github.com/narlei/claudecodenotify" rel="noopener">GitHub repo</a>
+        <a href="https://github.com/narlei/claudecodenotify/releases" rel="noopener">Releases</a>
+        <a href="https://ko-fi.com/narlei" rel="noopener">Ko-fi</a>
+      </nav>
+      <p class="site-footer__by">By <strong>Narlei Moreira</strong></p>
+    </div>
+  </footer>
+
+  <script>
+    const API = 'https://api.github.com/repos/narlei/claudecodenotify/releases';
+
+    function formatNum(n) {
+      return n.toLocaleString('en-US');
+    }
+
+    function formatDate(iso) {
+      return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function assetIcon(name) {
+      if (name.endsWith('.dmg')) return '💿';
+      if (name.endsWith('.zip')) return '📦';
+      return '📄';
+    }
+
+    function renderChart(releases) {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const gridColor = isDark ? 'rgba(255,255,255,.08)' : 'rgba(38,38,36,.07)';
+      const labelColor = isDark ? '#9c9a91' : '#6B6B66';
+
+      const ordered = [...releases].reverse();
+      const labels = ordered.map(r => r.tag_name);
+      const data = ordered.map(r => r._total);
+
+      const ctx = document.getElementById('downloads-chart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Downloads',
+            data,
+            backgroundColor: 'rgba(217,117,94,.75)',
+            hoverBackgroundColor: '#C2410C',
+            borderRadius: 8,
+            borderSkipped: false,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => ` ${ctx.parsed.y.toLocaleString('en-US')} downloads`
+              },
+              backgroundColor: isDark ? '#2a2a27' : '#262624',
+              titleColor: '#f4f2ea',
+              bodyColor: '#cfcdc6',
+              borderColor: isDark ? '#3a3a35' : 'transparent',
+              borderWidth: 1,
+              padding: 10,
+              cornerRadius: 8,
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: labelColor, font: { family: "'Inter', sans-serif", size: 12 } },
+              border: { display: false },
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: labelColor,
+                font: { family: "'Inter', sans-serif", size: 12 },
+                precision: 0,
+              },
+              grid: { color: gridColor },
+              border: { display: false },
+            }
+          }
+        }
+      });
+    }
+
+    function renderSummary(releases, total) {
+      const summary = document.getElementById('stats-summary');
+      summary.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-card__label">Total downloads</div>
+          <div class="stat-card__value stat-card__value--coral">${formatNum(total)}</div>
+          <div class="stat-card__sub">across all releases</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Releases</div>
+          <div class="stat-card__value">${releases.length}</div>
+          <div class="stat-card__sub">published on GitHub</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Latest version</div>
+          <div class="stat-card__value" style="font-size:1.6rem;">${releases[0]?.tag_name ?? '—'}</div>
+          <div class="stat-card__sub">${releases[0] ? formatDate(releases[0].published_at) : ''}</div>
+        </div>
+      `;
+    }
+
+    function renderReleases(releases, maxDownloads) {
+      const list = document.getElementById('release-list');
+
+      if (releases.length === 0) {
+        list.innerHTML = '<div class="state-msg"><p>No releases found.</p></div>';
+        return;
+      }
+
+      list.innerHTML = releases.map(release => {
+        const total = release.assets.reduce((s, a) => s + a.download_count, 0);
+        const pct = maxDownloads > 0 ? (total / maxDownloads) * 100 : 0;
+        const isLatest = releases[0].id === release.id;
+
+        const assetsHtml = release.assets
+          .filter(a => a.download_count > 0 || release.assets.length <= 3)
+          .map(a => `
+            <span class="asset-item">
+              <span class="asset-item__icon" aria-hidden="true">${assetIcon(a.name)}</span>
+              <span class="asset-item__name">${a.name}</span>
+              <span>${formatNum(a.download_count)}</span>
+            </span>
+          `).join('');
+
+        return `
+          <div class="release-row">
+            <div class="release-row__header">
+              <span class="release-row__tag">${release.tag_name}</span>
+              ${isLatest ? '<span class="release-row__badge">latest</span>' : ''}
+              <span class="release-row__date">${formatDate(release.published_at)}</span>
+            </div>
+            <div class="release-row__bar-wrap">
+              <div class="release-row__bar-track" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100" aria-label="${release.tag_name} download share">
+                <div class="release-row__bar-fill" style="width:${pct}%"></div>
+              </div>
+              <span class="release-row__total">${formatNum(total)}</span>
+            </div>
+            ${assetsHtml ? `<div class="release-row__assets">${assetsHtml}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch(API);
+        if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
+        const releases = await res.json();
+
+        const releasesWithTotals = releases.map(r => ({
+          ...r,
+          _total: r.assets.reduce((s, a) => s + a.download_count, 0)
+        }));
+
+        const grandTotal = releasesWithTotals.reduce((s, r) => s + r._total, 0);
+        const maxDownloads = Math.max(...releasesWithTotals.map(r => r._total), 1);
+
+        renderSummary(releases, grandTotal);
+        renderChart(releasesWithTotals);
+        renderReleases(releasesWithTotals, maxDownloads);
+      } catch (err) {
+        document.getElementById('stats-summary').innerHTML = '';
+        document.getElementById('release-list').innerHTML = `
+          <div class="state-msg">
+            <p class="state-msg__error">Failed to load data from GitHub.</p>
+            <p style="font-size:.9rem;">${err.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderViewsChart(days) {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const gridColor = isDark ? 'rgba(255,255,255,.08)' : 'rgba(38,38,36,.07)';
+      const labelColor = isDark ? '#9c9a91' : '#6B6B66';
+
+      const labels = days.map(d => {
+        const [,m,day] = d.date.split('-');
+        return `${day}/${m}`;
+      });
+      const data = days.map(d => d.unique);
+
+      const ctx = document.getElementById('views-chart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Unique visits',
+            data,
+            borderColor: '#C2410C',
+            backgroundColor: isDark ? 'rgba(217,117,94,.15)' : 'rgba(217,117,94,.10)',
+            borderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            pointBackgroundColor: '#C2410C',
+            fill: true,
+            tension: 0.3,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => ` ${ctx.parsed.y} unique visitor${ctx.parsed.y !== 1 ? 's' : ''}`
+              },
+              backgroundColor: isDark ? '#2a2a27' : '#262624',
+              titleColor: '#f4f2ea',
+              bodyColor: '#cfcdc6',
+              borderColor: isDark ? '#3a3a35' : 'transparent',
+              borderWidth: 1,
+              padding: 10,
+              cornerRadius: 8,
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: {
+                color: labelColor,
+                font: { family: "'Inter', sans-serif", size: 11 },
+                maxTicksLimit: 10,
+              },
+              border: { display: false },
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: labelColor,
+                font: { family: "'Inter', sans-serif", size: 12 },
+                precision: 0,
+              },
+              grid: { color: gridColor },
+              border: { display: false },
+            }
+          }
+        }
+      });
+    }
+
+    function renderViewsSummary(stats) {
+      const days = stats.days;
+      const activeDays = days.filter(d => d.unique > 0).length;
+      const avg = activeDays > 0
+        ? (days.reduce((s, d) => s + d.unique, 0) / activeDays).toFixed(1)
+        : '0';
+
+      document.getElementById('views-summary').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-card__label">Page visits today</div>
+          <div class="stat-card__value stat-card__value--coral">${formatNum(stats.today)}</div>
+          <div class="stat-card__sub">unique visitors</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Total visits</div>
+          <div class="stat-card__value">${formatNum(stats.total)}</div>
+          <div class="stat-card__sub">all time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Avg / active day</div>
+          <div class="stat-card__value">${avg}</div>
+          <div class="stat-card__sub">last 30 days</div>
+        </div>
+      `;
+    }
+
+    async function loadViews() {
+      try {
+        const res = await fetch('/stats-data.php');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const stats = await res.json();
+        renderViewsSummary(stats);
+        renderViewsChart(stats.days);
+      } catch {
+        document.getElementById('views-summary').innerHTML = `
+          <div class="stat-card" style="grid-column:1/-1">
+            <div class="stat-card__label">Page visits</div>
+            <div class="stat-card__value" style="font-size:1rem;color:var(--muted)">Not available</div>
+            <div class="stat-card__sub">tracker.php not reachable in this environment</div>
+          </div>
+        `;
+        const canvas = document.getElementById('views-chart');
+        if (canvas) canvas.closest('.chart-wrap').style.display = 'none';
+      }
+    }
+
+    loadStats();
+    loadViews();
+  </script>
+</body>
+</html>

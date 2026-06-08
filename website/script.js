@@ -81,6 +81,12 @@
   }
 })();
 
+// Page view tracker — fire-and-forget, deduplicates by IP per day server-side.
+(function () {
+  "use strict";
+  fetch("/tracker.php").catch(function () { /* ignore */ });
+})();
+
 // GitHub download counter — sums download_count across all release assets.
 // Public API, no auth (60 req/h per IP). Stays hidden if there are no releases.
 (function () {

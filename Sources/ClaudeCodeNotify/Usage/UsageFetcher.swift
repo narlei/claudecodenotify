@@ -9,9 +9,7 @@ struct UsageData {
 
 enum UsageFetcher {
     private static let claudeKeychainService = "Claude Code-credentials"
-    // Our own entry: the creating app owns it, so macOS won't re-prompt after updates.
-    private static let cacheKeychainService = "ClaudeCodeNotify-usage-token"
-    private static let cacheKeychainAccount = "accessToken"
+    private static let securityTool = "/usr/bin/security"
 
     private static let apiURL = URL(string: "https://api.anthropic.com/v1/messages")!
     private static let claudeCandidates = ["/opt/homebrew/bin/claude", "/usr/local/bin/claude", "claude"]
@@ -60,8 +58,7 @@ enum UsageFetcher {
               let http = response as? HTTPURLResponse else { return nil }
 
         if (http.statusCode == 401 || http.statusCode == 403), !retried {
-            // Stale token — clear our cache so next read falls back to Claude's keychain.
-            clearCachedToken()
+            // Stale token — let the CLI refresh Claude's keychain entry, then re-read it.
             let refreshed = await attemptCliRefresh()
             if refreshed { return await fetchAttempt(retried: true) }
             return nil
@@ -101,82 +98,47 @@ enum UsageFetcher {
 
     // MARK: - Token reading
 
-    /// Tries our own cached entry first (no re-prompt after app updates), then falls back
-    /// to Claude Code's keychain entry (one-time user permission required).
+    /// Reads Claude Code's keychain entry by delegating to `/usr/bin/security` instead of
+    /// calling SecItemCopyMatching in-process. The keychain ACL attaches "Always Allow" to
+    /// the requesting binary, and since `/usr/bin/security` is a stably-signed Apple tool,
+    /// the grant persists across reboots and app updates. An in-process read from this
+    /// ad-hoc-signed app would have no stable code identity, so macOS would re-prompt every
+    /// time the trust couldn't be revalidated (e.g. after a restart).
     private static func readToken() -> String? {
-        if let cached = readCachedToken() { return cached }
-        return readClaudeToken()
-    }
-
-    private static func readCachedToken() -> String? {
-        var item: AnyObject?
-        let query: [CFString: Any] = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrService: cacheKeychainService,
-            kSecAttrAccount: cacheKeychainAccount,
-            kSecReturnData: true,
-            kSecMatchLimit: kSecMatchLimitOne
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: securityTool)
+        p.arguments = [
+            "find-generic-password",
+            "-s", claudeKeychainService,
+            "-a", NSUserName(),
+            "-w"
         ]
-        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
-              let data = item as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
+        let outPipe = Pipe()
+        p.standardOutput = outPipe
+        p.standardError = FileHandle.nullDevice
 
-    private static func readClaudeToken() -> String? {
-        let username = NSUserName()
-        var item: AnyObject?
-        let query: [CFString: Any] = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrService: claudeKeychainService,
-            kSecAttrAccount: username,
-            kSecReturnData: true,
-            kSecMatchLimit: kSecMatchLimitOne
-        ]
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
-        switch status {
-        case errSecSuccess:
-            guard let data = item as? Data,
-                  let raw = String(data: data, encoding: .utf8),
-                  let token = extractAccessToken(raw) else { return nil }
-            cacheToken(token)
-            return token
-        case errSecItemNotFound:
-            // No keychain entry — user likely using a custom API or not logged in via CLI.
+        do {
+            try p.run()
+        } catch {
             return nil
-        case errSecUserCanceled, errSecInteractionNotAllowed:
+        }
+
+        let data = outPipe.fileHandleForReading.readDataToEndOfFile()
+        p.waitUntilExit()
+
+        // 0: success. 128: user clicked Deny on the keychain prompt. 44: item not found
+        // (user not logged in via CLI / using a custom API). Treat anything else as transient.
+        switch p.terminationStatus {
+        case 0:
+            guard let raw = String(data: data, encoding: .utf8),
+                  let token = extractAccessToken(raw) else { return nil }
+            return token
+        case 128:
             keychainDenied = true
             return nil
         default:
             return nil
         }
-    }
-
-    // MARK: - Token cache management
-
-    private static func cacheToken(_ token: String) {
-        let data = Data(token.utf8)
-        let lookupQuery: [CFString: Any] = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrService: cacheKeychainService,
-            kSecAttrAccount: cacheKeychainAccount
-        ]
-        let updateAttrs: [CFString: Any] = [kSecValueData: data]
-        if SecItemUpdate(lookupQuery as CFDictionary, updateAttrs as CFDictionary) == errSecItemNotFound {
-            var addQuery = lookupQuery
-            addQuery[kSecValueData] = data
-            // kSecAttrAccessibleAfterFirstUnlock: readable after first device unlock, no user prompt.
-            addQuery[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlock
-            SecItemAdd(addQuery as CFDictionary, nil)
-        }
-    }
-
-    private static func clearCachedToken() {
-        let query: [CFString: Any] = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrService: cacheKeychainService,
-            kSecAttrAccount: cacheKeychainAccount
-        ]
-        SecItemDelete(query as CFDictionary)
     }
 
     // MARK: - Helpers
