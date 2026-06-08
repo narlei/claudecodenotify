@@ -1,9 +1,6 @@
-### What's New in 1.1.2
+### What's New in 1.1.3
 
-- **Keychain deny fix** — denying the keychain prompt no longer causes it to re-appear on every menu open. The app remembers the decision and stops asking. Reset anytime in Preferences.
-- **No re-prompt after updates** — the OAuth token is now cached in the app's own keychain entry, so updating the app no longer triggers a new keychain permission dialog.
-- **Usage bars toggle** — new option in Preferences to disable usage bars entirely (useful if you use a custom Claude API without credentials in the system keychain).
-- **Smarter onboarding** — the welcome screen has no close button on first launch (exit only via Get Started). If you skip the hook install or keychain grant, Get Started walks you through each one with a confirmation prompt.
+- **Keychain "Always Allow" now sticks** — the keychain permission prompt no longer reappears after a reboot or app update. Click **Always Allow** once and you're done. Reading the token is now delegated to macOS's own `security` tool, so the grant persists for good.
 
 ---
 
