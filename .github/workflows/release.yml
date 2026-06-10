@@ -3,8 +3,8 @@ name: Release on version bump
 # When something lands on main (e.g. a merged PR), check whether
 # CFBundleShortVersionString in Resources/Info.plist was bumped to a version
 # that has no matching tag yet. If so, build the artifacts and publish a
-# GitHub release. If the version is unchanged the tag already exists and the
-# job exits cleanly without releasing.
+# GitHub release, then update the Homebrew tap in the same run. If the version
+# is unchanged the tag already exists and the job exits cleanly.
 
 on:
   push:
@@ -22,6 +22,9 @@ jobs:
   release:
     name: Release (macOS)
     runs-on: macos-latest
+    outputs:
+      released: ${{ steps.check.outputs.release }}
+      version: ${{ steps.ver.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -67,13 +70,20 @@ jobs:
       - name: Build, tag and publish release
         if: steps.check.outputs.release == 'true'
         env:
-          # Use a PAT (secrets.RELEASE_PAT) if provided so that publishing this
-          # release can trigger the downstream "Update Homebrew Tap" workflow.
-          # Releases created with the default GITHUB_TOKEN do NOT trigger other
-          # workflows. Falls back to github.token (release still publishes; the
-          # Homebrew cask just won't auto-update).
-          GH_TOKEN: ${{ secrets.RELEASE_PAT || github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           ./.claude/skills/release/scripts/create-release.sh
+
+  # Update the Homebrew cask in the same run. This sidesteps the GitHub quirk
+  # where a release published by the default GITHUB_TOKEN does not trigger the
+  # standalone "release: published" workflow. Only runs when a release was cut.
+  homebrew:
+    name: Update Homebrew Tap
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    uses: ./.github/workflows/homebrew.yml
+    with:
+      version: ${{ needs.release.outputs.version }}
+    secrets: inherit
