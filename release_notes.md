@@ -1,12 +1,13 @@
 ### What's New in 1.2.0
 
-- **👥 Multi-account profiles** — keep your personal and work Claude accounts on the same machine and switch between them instantly:
-  - **Global hotkey per profile** (e.g. ⌃⌥⌘P → Personal, ⌃⌥⌘E → Work) or one click in the menu.
-  - The active profile's **emoji shows in the menu bar**, and a confirmation card pops with that account's **fresh usage bars** right after the switch.
-  - Inactive profiles keep their **last-seen usage** in the menu, so you know if the other account has room before switching.
-  - Setup in **Preferences → Accounts**: capture the account you're logged into, run `claude /login` with the other one — it's detected automatically — and capture it too.
-  - Logged in manually with `claude /login`? The app follows along; unknown accounts are never touched.
-  - Credentials are snapshotted in your **macOS Keychain** (never on disk), switching never logs anyone out, and with a single account nothing changes.
+**👥 Multi-account profiles** — keep your personal and work Claude accounts on the same machine and switch between them in a single click, without ever logging out.
+
+- **Instant switching** — pick an account from the menu bar, or assign a **global hotkey per profile** (e.g. ⌃⌥⌘P → Personal, ⌃⌥⌘E → Work) and swap without leaving your terminal.
+- **Always know which account is active** — each profile's **emoji shows right in the menu bar**, and a confirmation card pops up after every switch with that account's **fresh usage bars**.
+- **See before you switch** — inactive profiles keep their **last-seen usage** in the menu, so you know if the other account still has room.
+- **Two-minute setup** in **Preferences → Accounts** — capture the account you're already logged into, run `claude /login` with the other one (it's detected automatically), and capture that too.
+- **Follows your manual logins** — log in by hand with `claude /login` and the app keeps up; accounts it doesn't manage are never touched.
+- **Private by design** — credentials are snapshotted into your **macOS Keychain** (never written to disk), switching never logs anyone out, and if you only use one account nothing changes.
 
 ---
 
