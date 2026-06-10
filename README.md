@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="website/assets/notifications.png" width="520" alt="The three notification types: permission, idle, and finished">
+  <img src="website/assets/demo.gif" width="720" alt="Animated demo: Claude Code asks permission to run swift test, a ClaudeCodeNotify card with live usage bars pops up, Enter jumps back to the terminal, and Claude finishes the task">
 </p>
 
 A macOS **menu bar** app that pops a **floating notification in the center of your screen** when Claude Code needs you — when it **asks for permission**, is **idle waiting for input**, or **finishes a task**. Press **Enter** (or click) and it jumps you straight to the terminal where Claude is running. Built for people who leave Claude Code working and don't want to babysit the terminal.
@@ -79,6 +79,11 @@ When shown, the notification appears centered at the top, over anything (includi
     </td>
   </tr>
 </table>
+
+<p align="center">
+  <img src="website/assets/notifications.png" width="520" alt="The three notification types: permission, idle, and finished"><br>
+  <sub><b>Notifications</b> — the three card types: permission, waiting, and finished, each with live usage bars.</sub>
+</p>
 
 <p align="center">
   <img src="website/assets/menu.png" width="280" alt="Menu bar menu with connection status dot"><br>
