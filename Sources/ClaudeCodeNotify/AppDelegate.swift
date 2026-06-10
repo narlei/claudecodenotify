@@ -3,6 +3,7 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: StatusItemController?
     private var service: NotificationService?
+    private var profileManager: ProfileManager?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         do {
@@ -15,7 +16,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let service = NotificationService(config: config)
         service.start()
         self.service = service
-        self.statusItem = StatusItemController(config: config)
+        let profileManager = ProfileManager.shared
+        self.profileManager = profileManager
+        self.statusItem = StatusItemController(config: config, profileManager: profileManager)
 
         // First launch → welcome screen (no close button; only exit is "Get Started").
         if !config.onboardingShown {

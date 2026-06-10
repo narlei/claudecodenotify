@@ -8,8 +8,7 @@ struct UsageData {
 }
 
 enum UsageFetcher {
-    private static let claudeKeychainService = "Claude Code-credentials"
-    private static let securityTool = "/usr/bin/security"
+    private static let credentialStore: CredentialStoring = SecurityToolCredentialStore()
 
     private static let apiURL = URL(string: "https://api.anthropic.com/v1/messages")!
     private static let claudeCandidates = ["/opt/homebrew/bin/claude", "/usr/local/bin/claude", "claude"]
@@ -98,52 +97,22 @@ enum UsageFetcher {
 
     // MARK: - Token reading
 
-    /// Reads Claude Code's keychain entry by delegating to `/usr/bin/security` instead of
-    /// calling SecItemCopyMatching in-process. The keychain ACL attaches "Always Allow" to
-    /// the requesting binary, and since `/usr/bin/security` is a stably-signed Apple tool,
-    /// the grant persists across reboots and app updates. An in-process read from this
-    /// ad-hoc-signed app would have no stable code identity, so macOS would re-prompt every
-    /// time the trust couldn't be revalidated (e.g. after a restart).
     private static func readToken() -> String? {
-        let p = Process()
-        p.executableURL = URL(fileURLWithPath: securityTool)
-        p.arguments = [
-            "find-generic-password",
-            "-s", claudeKeychainService,
-            "-a", NSUserName(),
-            "-w"
-        ]
-        let outPipe = Pipe()
-        p.standardOutput = outPipe
-        p.standardError = FileHandle.nullDevice
-
-        do {
-            try p.run()
-        } catch {
-            return nil
-        }
-
-        let data = outPipe.fileHandleForReading.readDataToEndOfFile()
-        p.waitUntilExit()
-
-        // 0: success. 128: user clicked Deny on the keychain prompt. 44: item not found
-        // (user not logged in via CLI / using a custom API). Treat anything else as transient.
-        switch p.terminationStatus {
-        case 0:
-            guard let raw = String(data: data, encoding: .utf8),
-                  let token = extractAccessToken(raw) else { return nil }
-            return token
-        case 128:
+        switch credentialStore.readClaudeCredentials() {
+        case .success(let blob):
+            return extractAccessToken(blob)
+        case .denied:
             keychainDenied = true
             return nil
-        default:
+        case .notFound, .failure:
+            // Not logged in via CLI / custom API, or transient error.
             return nil
         }
     }
 
     // MARK: - Helpers
 
-    private static func extractAccessToken(_ raw: String) -> String? {
+    static func extractAccessToken(_ raw: String) -> String? {
         guard let data = raw.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let oauth = json["claudeAiOauth"] as? [String: Any],

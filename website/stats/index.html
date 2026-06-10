@@ -203,11 +203,63 @@
     }
     .chart-wrap canvas { display: block; width: 100% !important; }
 
+    /* ── Clicks / interactions list ── */
+    .clicks-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .click-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .click-row__label {
+      flex: 0 0 220px;
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .click-row__bar-wrap {
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      min-width: 0;
+    }
+    .click-row__bar-track {
+      flex: 1 1 auto;
+      height: 6px;
+      background: var(--cream-deep);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .click-row__bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--coral), var(--coral-deep));
+      border-radius: 999px;
+      transition: width .5s ease;
+    }
+    .click-row__count {
+      flex: 0 0 auto;
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--ink);
+      min-width: 2.6em;
+      text-align: right;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 700px) {
       .stats-summary { grid-template-columns: 1fr; }
       .release-row__header { flex-wrap: wrap; }
       .release-row__date { margin-left: 0; }
+      .click-row { flex-wrap: wrap; }
+      .click-row__label { flex: 1 1 100%; margin-bottom: 2px; }
+      .click-row__bar-wrap { flex: 1 1 100%; }
     }
     @media (max-width: 480px) {
       .stats-hero { padding: 48px 0 40px; }
@@ -224,6 +276,9 @@
       .stat-card__value { color: #f4f2ea; }
       .release-row__tag { color: #f4f2ea; }
       .release-row__bar-track { background: #2a2a27; }
+      .click-row__label { color: #cfcdc6; }
+      .click-row__bar-track { background: #3a3a35; }
+      .click-row__count { color: #f4f2ea; }
     }
   </style>
 </head>
@@ -239,7 +294,7 @@
       </a>
       <ul class="nav__links">
         <li><a href="index.html#features">Features</a></li>
-        <li><a href="index.html#screenshots">Screenshots</a></li>
+        <li><a href="index.html#download">Download</a></li>
         <li><a href="index.html#support">Support</a></li>
       </ul>
       <a class="btn btn--ghost nav__cta" href="https://github.com/narlei/claudecodenotify" rel="noopener">GitHub</a>
@@ -288,6 +343,22 @@
             <div class="stat-card__value skeleton" style="width:60px;height:2.2rem;">&nbsp;</div>
           </div>
         </div>
+
+        <!-- Button / link click metrics (populated from events.json via stats-data.php) -->
+        <div class="stats-summary" id="clicks-summary" aria-live="polite" style="margin-top:14px;">
+          <div class="stat-card">
+            <div class="stat-card__label">Interactions today</div>
+            <div class="stat-card__value skeleton" style="width:60px;height:2.2rem;">&nbsp;</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">Interactions (30d)</div>
+            <div class="stat-card__value skeleton" style="width:80px;height:2.2rem;">&nbsp;</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">Top action (30d)</div>
+            <div class="stat-card__value skeleton" style="width:120px;height:2.2rem;">&nbsp;</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -306,6 +377,21 @@
         <h2 class="section__title" style="text-align:left;margin-bottom:1rem;font-size:1.1rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Unique visits — last 30 days</h2>
         <div class="chart-wrap">
           <canvas id="views-chart" height="220" aria-label="Unique page visits last 30 days line chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── Click / interaction metrics ───────────────────────── -->
+    <section class="chart-section" aria-labelledby="clicks-title">
+      <div class="wrap">
+        <h2 id="clicks-title" class="section__title" style="text-align:left;margin-bottom:1rem;font-size:1.1rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Top button &amp; link clicks — last 30 days</h2>
+        <div class="chart-wrap">
+          <div id="clicks-list" class="clicks-list" aria-live="polite">
+            <div class="state-msg" style="padding:30px 0;">
+              <div class="state-msg__spinner" style="width:28px;height:28px;margin-bottom:.6rem;"></div>
+              <p style="margin:0;font-size:.9rem;">Loading interactions…</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -344,6 +430,28 @@
 
   <script>
     const API = 'https://api.github.com/repos/narlei/claudecodenotify/releases';
+
+    // Human labels for tracked click events (data-track values from the landing page)
+    const EVENT_LABELS = {
+      'hero-download': 'Hero — Download for macOS',
+      'nav-download': 'Nav — Download',
+      'dl-dmg': 'Download latest .dmg',
+      'dl-brew-copy': 'Copy brew install command',
+      'dl-quarantine-copy': 'Copy quarantine removal command',
+      'hero-coffee': 'Hero — Buy me a coffee',
+      'nav-features': 'Nav — Features',
+      'nav-support': 'Nav — Support',
+      'nav-github': 'Nav — GitHub',
+      'support-kofi': 'Support — Ko-fi',
+      'support-paypal': 'Support — PayPal',
+      'support-pix': 'Support — Pix',
+      'pix-copy': 'Copy Pix key',
+      'social-github': 'Social — GitHub',
+      'social-linkedin': 'Social — LinkedIn',
+      'social-x': 'Social — X',
+      'social-instagram': 'Social — Instagram',
+      'social-web': 'Social — narlei.com'
+    };
 
     function formatNum(n) {
       return n.toLocaleString('en-US');
@@ -610,6 +718,76 @@
       `;
     }
 
+    function renderClicksSummary(events) {
+      const el = document.getElementById('clicks-summary');
+      if (!el) return;
+
+      const todayMap = events.today || {};
+      const last30Map = events.last30 || {};
+
+      const todayTotal = Object.values(todayMap).reduce((s, n) => s + n, 0);
+      const d30Total = Object.values(last30Map).reduce((s, n) => s + n, 0);
+
+      // Top action overall in the 30d window
+      const topEntry = Object.entries(last30Map).sort((a, b) => b[1] - a[1])[0];
+      let topLabel = '—';
+      let topCount = '';
+      if (topEntry) {
+        const [name, cnt] = topEntry;
+        topLabel = EVENT_LABELS[name] || name.replace(/-/g, ' ');
+        topCount = formatNum(cnt);
+      }
+
+      el.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-card__label">Interactions today</div>
+          <div class="stat-card__value stat-card__value--coral">${formatNum(todayTotal)}</div>
+          <div class="stat-card__sub">unique clicks (deduped)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Interactions (30d)</div>
+          <div class="stat-card__value">${formatNum(d30Total)}</div>
+          <div class="stat-card__sub">unique clicks (deduped)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Top action (30d)</div>
+          <div class="stat-card__value" style="font-size:1.05rem;line-height:1.15;">${topLabel}</div>
+          <div class="stat-card__sub">${topCount ? topCount + ' clicks' : 'no data yet'}</div>
+        </div>
+      `;
+    }
+
+    function renderClicksList(events) {
+      const container = document.getElementById('clicks-list');
+      if (!container) return;
+
+      const last30 = events.last30 || {};
+      const entries = Object.entries(last30).sort((a, b) => b[1] - a[1]);
+
+      if (entries.length === 0) {
+        container.innerHTML = '<div class="state-msg" style="padding:20px 0;"><p style="margin:0;font-size:.9rem;color:var(--muted);">No interaction data yet.</p></div>';
+        return;
+      }
+
+      const max = Math.max(...entries.map(e => e[1]), 1);
+
+      container.innerHTML = entries.map(([name, count]) => {
+        const label = EVENT_LABELS[name] || name.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const pct = Math.round((count / max) * 100);
+        return `
+          <div class="click-row">
+            <div class="click-row__label" title="${label}">${label}</div>
+            <div class="click-row__bar-wrap">
+              <div class="click-row__bar-track" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
+                <div class="click-row__bar-fill" style="width:${pct}%"></div>
+              </div>
+              <span class="click-row__count">${formatNum(count)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     async function loadViews() {
       try {
         const res = await fetch('/stats-data.php');
@@ -617,6 +795,10 @@
         const stats = await res.json();
         renderViewsSummary(stats);
         renderViewsChart(stats.days);
+        if (stats.events) {
+          renderClicksSummary(stats.events);
+          renderClicksList(stats.events);
+        }
       } catch {
         document.getElementById('views-summary').innerHTML = `
           <div class="stat-card" style="grid-column:1/-1">
@@ -627,6 +809,20 @@
         `;
         const canvas = document.getElementById('views-chart');
         if (canvas) canvas.closest('.chart-wrap').style.display = 'none';
+
+        // clicks also unavailable
+        const clicksEl = document.getElementById('clicks-summary');
+        if (clicksEl) {
+          clicksEl.innerHTML = `
+            <div class="stat-card" style="grid-column:1/-1">
+              <div class="stat-card__label">Interactions</div>
+              <div class="stat-card__value" style="font-size:1rem;color:var(--muted)">Not available</div>
+              <div class="stat-card__sub">event.php / stats-data.php not reachable</div>
+            </div>
+          `;
+        }
+        const clicksList = document.getElementById('clicks-list');
+        if (clicksList) clicksList.innerHTML = '<div class="state-msg" style="padding:20px 0;"><p style="margin:0;font-size:.9rem;color:var(--muted);">Click tracking data unavailable.</p></div>';
       }
     }
 

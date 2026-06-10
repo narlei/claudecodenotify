@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="website/assets/notifications.png" width="520" alt="The three notification types: permission, idle, and finished">
+  <img src="website/assets/demo.gif" width="720" alt="Animated demo: Claude Code asks permission to run swift test, a ClaudeCodeNotify card with live usage bars pops up, Enter jumps back to the terminal, and Claude finishes the task">
 </p>
 
 A macOS **menu bar** app that pops a **floating notification in the center of your screen** when Claude Code needs you — when it **asks for permission**, is **idle waiting for input**, or **finishes a task**. Press **Enter** (or click) and it jumps you straight to the terminal where Claude is running. Built for people who leave Claude Code working and don't want to babysit the terminal.
@@ -31,7 +31,6 @@ A macOS **menu bar** app that pops a **floating notification in the center of yo
 
 - [How it works](#how-it-works)
 - [Features](#features)
-- [Screenshots](#screenshots)
 - [Installation](#installation)
 - [First launch](#first-launch)
 - [Build (development)](#build-development)
@@ -61,28 +60,9 @@ When shown, the notification appears centered at the top, over anything (includi
 - **🎚️ Make it yours** — per-type **duration** (`0` = stays until dismissed) and **sound** (system sounds or none, with preview); plus how the card/sound behaves while Claude's terminal or editor is already focused.
 - **📊 Lives in your menu bar** — a bell icon with a green/red connection dot; connect or disconnect anytime. No Dock icon.
 - **⚡ Live usage bars** — every notification and the menu show your Claude Code **5-hour rolling** and **weekly** usage, color-coded (green → yellow → orange → red) with a reset countdown. Reads your OAuth token directly from the macOS Keychain — no API key needed. Requires the Claude Code CLI to be installed.
+- **👥 Multi-account profiles** — use a personal and a work Claude account on the same machine and switch instantly, from the menu or with a **global hotkey** per profile. The active profile's emoji shows next to the menu bar icon, a confirmation card pops with that account's **fresh usage bars**, and inactive profiles keep their last-seen usage in the menu. Set it up in **Preferences → Accounts**: capture the account you're logged into, run `claude /login` with the other one, capture it too — done. Credentials are snapshotted in your macOS Keychain (never on disk), and switching never logs anyone out. Single-account users see no change at all.
 - **🔒 Local & private** — a tiny server listening only on `127.0.0.1`, validated with a token. Nothing leaves your machine.
 - **🚀 Open at Login** via `SMAppService`.
-
-## Screenshots
-
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      <img src="website/assets/onboarding.png" alt="Welcome / onboarding window"><br>
-      <sub><b>Onboarding</b> — walks you through setup and confirms the connection.</sub>
-    </td>
-    <td width="50%" valign="top">
-      <img src="website/assets/preferences.png" alt="Preferences window"><br>
-      <sub><b>Preferences</b> — tune display time and sound for each notification type.</sub>
-    </td>
-  </tr>
-</table>
-
-<p align="center">
-  <img src="website/assets/menu.png" width="280" alt="Menu bar menu with connection status dot"><br>
-  <sub><b>Menu bar</b> — connection status, live usage bars, preferences, and check for updates.</sub>
-</p>
 
 ## Installation
 

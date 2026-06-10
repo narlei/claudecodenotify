@@ -1,16 +1,19 @@
 import AppKit
 import SwiftUI
+import UserNotifications
 
 /// Menu bar item: bell icon + menu (connect/disconnect Claude Code, open at login, quit).
 @MainActor
 final class StatusItemController: NSObject {
     private let statusItem: NSStatusItem
     private var config: Config
+    private let profileManager: ProfileManager
     private var token: String { config.token }
     private var menuUsage: UsageData? = nil
 
-    init(config: Config) {
+    init(config: Config, profileManager: ProfileManager) {
         self.config = config
+        self.profileManager = profileManager
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         super.init()
 
@@ -20,6 +23,43 @@ final class StatusItemController: NSObject {
                 ?? NSImage(systemSymbolName: "bell", accessibilityDescription: "ClaudeCodeNotify")
             button.image?.isTemplate = true
             button.image?.accessibilityDescription = "ClaudeCodeNotify"
+            button.imagePosition = .imageLeading
+        }
+        updateButtonAppearance()
+
+        NotificationCenter.default.addObserver(forName: .ccnotifyProfilesDidChange,
+                                               object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                self.updateButtonAppearance()
+                self.rebuildMenu()
+                HotKeyCenter.shared.register(profiles: self.profileManager.profiles)
+            }
+        }
+
+        // When onboarding finishes, pre-fetch usage then pop the menu open
+        // so the user sees usage bars on the very first open.
+        NotificationCenter.default.addObserver(forName: .ccnotifyPopUpMenu,
+                                               object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                profileManager.reconcile()
+                if let usage = await profileManager.refreshActiveUsage() {
+                    self.menuUsage = usage
+                    self.rebuildMenu()
+                    ResetNotificationScheduler.schedule(from: usage)
+                }
+                self.statusItem.button?.performClick(nil)
+            }
+        }
+
+        HotKeyCenter.shared.onHotKey = { [weak self] profileID in
+            self?.performSwitch(to: profileID)
+        }
+        HotKeyCenter.shared.register(profiles: profileManager.profiles)
+
+        profileManager.onUnknownAccountDetected = { [weak self] identity in
+            Task { @MainActor in self?.notifyUnknownAccount(identity) }
         }
 
         let menu = NSMenu()
@@ -31,9 +71,45 @@ final class StatusItemController: NSObject {
         // before the welcome screen. The menu's menuWillOpen will fetch on first open.
         if config.onboardingShown {
             Task {
-                if let usage = await UsageFetcher.fetch() {
+                profileManager.reconcile()
+                if let usage = await profileManager.refreshActiveUsage() {
                     ResetNotificationScheduler.schedule(from: usage)
                 }
+            }
+        }
+    }
+
+    /// With ≥2 profiles the active profile's emoji shows next to the bell;
+    /// with 0–1 profiles the menu bar looks exactly as before.
+    private func updateButtonAppearance() {
+        guard let button = statusItem.button else { return }
+        if profileManager.isMultiAccount, let active = profileManager.activeProfile {
+            button.title = " " + active.emoji
+        } else {
+            button.title = ""
+        }
+    }
+
+    // MARK: - Profile switching
+
+    /// Switches profile showing the confirmation card (used by menu items and hotkeys).
+    func performSwitch(to profileID: UUID) {
+        guard let target = profileManager.profiles.first(where: { $0.id == profileID }),
+              target.id != profileManager.activeProfile?.id else { return }
+        SwitchCardPresenter.shared.show(profile: target)
+        Task {
+            do {
+                let result = try await profileManager.switchTo(profileID: profileID)
+                SwitchCardPresenter.shared.showUsage(result.usage)
+                if let usage = result.usage { ResetNotificationScheduler.schedule(from: usage) }
+                self.menuUsage = result.usage
+            } catch ProfileManager.SwitchError.missingSnapshot {
+                SwitchCardPresenter.shared.dismiss()
+                notify("Can't switch to \(target.name)",
+                       "Stored credentials for this profile are missing. Run `claude /login` with that account, then re-capture the profile in Preferences → Accounts.")
+            } catch {
+                SwitchCardPresenter.shared.dismiss()
+                notify("Failed to switch profile", "\(error)")
             }
         }
     }
@@ -47,6 +123,13 @@ final class StatusItemController: NSObject {
                                   action: nil, keyEquivalent: "")
         header.isEnabled = false
         header.image = statusDot(connected ? .systemGreen : .systemRed)
+
+        if profileManager.isMultiAccount {
+            menu.addItem(.separator())
+            for profile in profileManager.profiles {
+                menu.addItem(profileMenuItem(profile))
+            }
+        }
 
         if let usage = menuUsage {
             menu.addItem(.separator())
@@ -82,32 +165,69 @@ final class StatusItemController: NSObject {
         updateItem.target = self
         if Updater.shared.hasNewVersion { updateItem.image = statusDot(.systemBlue) }
 
-        if !config.donationHidden {
-            menu.addItem(.separator())
-            menu.addItem(buildSupportItem())
-        }
+        menu.addItem(.separator())
+        let support = menu.addItem(withTitle: "Buy me a coffee ☕",
+                                   action: #selector(openSupport), keyEquivalent: "")
+        support.target = self
 
         menu.addItem(.separator())
         menu.addItem(withTitle: "Quit", action: #selector(quit), keyEquivalent: "q").target = self
     }
 
-    /// Donation submenu ("buy me a coffee"). Hides when user marks "already donated".
-    private func buildSupportItem() -> NSMenuItem {
-        let item = NSMenuItem(title: "Support ClaudeCodeNotify ☕", action: nil, keyEquivalent: "")
-        let sub = NSMenu()
-        if let koFi = SupportLinks.koFi {
-            let i = sub.addItem(withTitle: "Buy me a coffee (Ko-fi)", action: #selector(openKoFi), keyEquivalent: "")
-            i.target = self; i.representedObject = koFi
+    /// Menu entry for one profile: checkmark on the active one; inactive ones show
+    /// their last cached usage as a gray second line.
+    private func profileMenuItem(_ profile: Profile) -> NSMenuItem {
+        let item = NSMenuItem(title: "\(profile.emoji) \(profile.name)",
+                              action: #selector(switchProfileItem(_:)), keyEquivalent: "")
+        item.target = self
+        item.representedObject = profile.id
+
+        if profile.id == profileManager.activeProfile?.id {
+            item.state = .on
+        } else if let cached = profile.cachedUsage {
+            let title = NSMutableAttributedString(
+                string: "\(profile.emoji) \(profile.name)\n",
+                attributes: [.font: NSFont.menuFont(ofSize: 0)])
+            let ago = Self.relativeFormatter.localizedString(for: cached.fetchedAt, relativeTo: Date())
+            title.append(NSAttributedString(
+                string: "5h \(Int(cached.util5h * 100))% · 7d \(Int(cached.util7d * 100))% · \(ago)",
+                attributes: [.font: NSFont.menuFont(ofSize: 11),
+                             .foregroundColor: NSColor.secondaryLabelColor]))
+            item.attributedTitle = title
         }
-        if let payPal = SupportLinks.payPal {
-            let i = sub.addItem(withTitle: "Donate via PayPal", action: #selector(openPayPal), keyEquivalent: "")
-            i.target = self; i.representedObject = payPal
-        }
-        sub.addItem(withTitle: "Copy Pix key (\(SupportLinks.pixKey))", action: #selector(copyPix), keyEquivalent: "").target = self
-        sub.addItem(.separator())
-        sub.addItem(withTitle: "I already donated — hide this", action: #selector(hideDonation), keyEquivalent: "").target = self
-        item.submenu = sub
         return item
+    }
+
+    private static let relativeFormatter: RelativeDateTimeFormatter = {
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .abbreviated
+        return f
+    }()
+
+    @objc private func switchProfileItem(_ sender: NSMenuItem) {
+        guard let id = sender.representedObject as? UUID else { return }
+        performSwitch(to: id)
+    }
+
+    /// Reconcile found a manual `claude /login` into an account with no profile.
+    /// A system notification (non-modal) suggests capturing it; dedup per account
+    /// so reopening the menu doesn't nag.
+    private var promptedUnknownAccounts: Set<String> = []
+
+    private func notifyUnknownAccount(_ identity: ClaudeConfigFile.AccountIdentity) {
+        let key = "\(identity.email)|\(identity.orgUuid ?? "")"
+        guard !promptedUnknownAccounts.contains(key) else { return }
+        promptedUnknownAccounts.insert(key)
+
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) { granted, _ in
+            guard granted else { return }
+            let content = UNMutableNotificationContent()
+            content.title = "New Claude account detected"
+            content.body = "\(identity.email) isn't a profile yet. Open Preferences → Accounts to capture it."
+            UNUserNotificationCenter.current().add(
+                UNNotificationRequest(identifier: "ccnotify-unknown-account",
+                                      content: content, trigger: nil))
+        }
     }
 
     /// Colored status dot for menu item (green = connected, red = disconnected).
@@ -120,21 +240,8 @@ final class StatusItemController: NSObject {
         return img
     }
 
-    @objc private func openKoFi(_ sender: NSMenuItem) {
-        if let url = sender.representedObject as? URL { SupportLinks.open(url) }
-    }
-
-    @objc private func openPayPal(_ sender: NSMenuItem) {
-        if let url = sender.representedObject as? URL { SupportLinks.open(url) }
-    }
-
-    @objc private func copyPix() {
-        SupportLinks.copyPixKey()
-    }
-
-    @objc private func hideDonation() {
-        config.hideDonation()
-        rebuildMenu()
+    @objc private func openSupport() {
+        SupportLinks.open(SupportLinks.supportPage)
     }
 
     @objc private func openWelcome() {
@@ -198,13 +305,14 @@ extension StatusItemController: NSMenuDelegate {
             }
         }
         Task {
-            let usage = await UsageFetcher.fetch()
+            profileManager.reconcile() // follow out-of-band `claude /login` before fetching
+            let usage = await profileManager.refreshActiveUsage()
             if let usage { ResetNotificationScheduler.schedule(from: usage) }
             await MainActor.run {
                 self.menuUsage = usage
                 self.rebuildMenu()
             }
         }
-        rebuildMenu() // reflete o estado real do settings.json a cada abertura
+        rebuildMenu() // reflects actual settings.json state on every open
     }
 }

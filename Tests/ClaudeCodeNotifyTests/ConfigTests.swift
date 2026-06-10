@@ -7,7 +7,6 @@ final class ConfigTests: SandboxedTestCase {
         let created = Config.loadOrCreate()
         XCTAssertFalse(created.token.isEmpty)
         XCTAssertFalse(created.onboardingShown)
-        XCTAssertFalse(created.donationHidden)
         XCTAssertTrue(FileManager.default.fileExists(atPath: AppPaths.configFile.path),
                       "config.json should have been written")
 
@@ -36,12 +35,6 @@ final class ConfigTests: SandboxedTestCase {
         XCTAssertTrue(Config.loadOrCreate().onboardingShown)
     }
 
-    func testHideDonationPersists() {
-        var cfg = Config.loadOrCreate()
-        cfg.hideDonation()
-        XCTAssertTrue(Config.loadOrCreate().donationHidden)
-    }
-
     func testResilientDecodeKeepsTokenWhenNewFieldsMissing() throws {
         // old config.json with just token — should not break or regenerate.
         _ = try? AppPaths.ensureSupportDirectory()
@@ -50,6 +43,5 @@ final class ConfigTests: SandboxedTestCase {
         let cfg = Config.loadOrCreate()
         XCTAssertEqual(cfg.token, "legacy-token")
         XCTAssertFalse(cfg.onboardingShown)
-        XCTAssertFalse(cfg.donationHidden)
     }
 }

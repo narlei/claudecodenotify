@@ -4,6 +4,11 @@ header('Access-Control-Allow-Origin: *');
 
 $dataFile = __DIR__ . '/data/views.json';
 
+$dataDir = dirname($dataFile);
+if (!is_dir($dataDir)) {
+    @mkdir($dataDir, 0775, true);
+}
+
 $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
 $ip = trim(explode(',', $ip)[0]);
 
