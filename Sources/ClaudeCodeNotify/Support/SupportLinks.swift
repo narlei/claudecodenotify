@@ -1,27 +1,13 @@
 import AppKit
 
-/// Donation links/actions ("buy me a coffee"). Provider is just a URL — easy to swap.
-/// Ko-fi/PayPal appear in menu only when filled; Pix always (key is copyable).
+/// Support action: opens the website's support section, which hosts all the
+/// donation options (Ko-fi, PayPal, Pix). Keeping them on the site means one
+/// place to update — the menu just links out.
 enum SupportLinks {
-    /// Ko-fi. nil = hidden.
-    static let koFi: URL? = URL(string: "https://ko-fi.com/narlei")
-    /// PayPal.me. nil = hidden.
-    static let payPal: URL? = URL(string: "https://paypal.me/narlei")
-    /// Pix key (copies to clipboard).
-    static let pixKey = "contato@narlei.com"
+    /// Website support section.
+    static let supportPage = URL(string: "https://claudecodenotify.narlei.com/#support")!
 
     static func open(_ url: URL) {
         NSWorkspace.shared.open(url)
-    }
-
-    /// Copies the Pix key and confirms.
-    static func copyPixKey() {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(pixKey, forType: .string)
-        let alert = NSAlert()
-        alert.messageText = "Pix key copied"
-        alert.informativeText = "\(pixKey)\n\nThanks for supporting ClaudeCodeNotify ☕"
-        alert.alertStyle = .informational
-        alert.runModal()
     }
 }

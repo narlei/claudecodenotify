@@ -165,32 +165,13 @@ final class StatusItemController: NSObject {
         updateItem.target = self
         if Updater.shared.hasNewVersion { updateItem.image = statusDot(.systemBlue) }
 
-        if !config.donationHidden {
-            menu.addItem(.separator())
-            menu.addItem(buildSupportItem())
-        }
+        menu.addItem(.separator())
+        let support = menu.addItem(withTitle: "Buy me a coffee ☕",
+                                   action: #selector(openSupport), keyEquivalent: "")
+        support.target = self
 
         menu.addItem(.separator())
         menu.addItem(withTitle: "Quit", action: #selector(quit), keyEquivalent: "q").target = self
-    }
-
-    /// Donation submenu ("buy me a coffee"). Hides when user marks "already donated".
-    private func buildSupportItem() -> NSMenuItem {
-        let item = NSMenuItem(title: "Support ClaudeCodeNotify ☕", action: nil, keyEquivalent: "")
-        let sub = NSMenu()
-        if let koFi = SupportLinks.koFi {
-            let i = sub.addItem(withTitle: "Buy me a coffee (Ko-fi)", action: #selector(openKoFi), keyEquivalent: "")
-            i.target = self; i.representedObject = koFi
-        }
-        if let payPal = SupportLinks.payPal {
-            let i = sub.addItem(withTitle: "Donate via PayPal", action: #selector(openPayPal), keyEquivalent: "")
-            i.target = self; i.representedObject = payPal
-        }
-        sub.addItem(withTitle: "Copy Pix key (\(SupportLinks.pixKey))", action: #selector(copyPix), keyEquivalent: "").target = self
-        sub.addItem(.separator())
-        sub.addItem(withTitle: "I already donated — hide this", action: #selector(hideDonation), keyEquivalent: "").target = self
-        item.submenu = sub
-        return item
     }
 
     /// Menu entry for one profile: checkmark on the active one; inactive ones show
@@ -259,21 +240,8 @@ final class StatusItemController: NSObject {
         return img
     }
 
-    @objc private func openKoFi(_ sender: NSMenuItem) {
-        if let url = sender.representedObject as? URL { SupportLinks.open(url) }
-    }
-
-    @objc private func openPayPal(_ sender: NSMenuItem) {
-        if let url = sender.representedObject as? URL { SupportLinks.open(url) }
-    }
-
-    @objc private func copyPix() {
-        SupportLinks.copyPixKey()
-    }
-
-    @objc private func hideDonation() {
-        config.hideDonation()
-        rebuildMenu()
+    @objc private func openSupport() {
+        SupportLinks.open(SupportLinks.supportPage)
     }
 
     @objc private func openWelcome() {

@@ -142,15 +142,7 @@ code { font-family: var(--mono); font-size: .92em; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: .8rem; margin-bottom: 1.1rem; }
 .hero__note { color: var(--muted); font-size: .92rem; margin: 0; }
 
-.hero__visual img {
-  width: 100%;
-  max-width: 520px;
-  height: auto;
-  border-radius: 18px;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid rgba(255,255,255,.06);
-  display: block;
-}
+.hero__visual { display: flex; justify-content: center; }
 
 /* ───────────────────────── Band (what it is) ───────────────────────── */
 .band {
@@ -332,6 +324,22 @@ code { font-family: var(--mono); font-size: .92em; }
   transition: transform .12s ease, border-bottom-width .12s ease;
 }
 .demo__key.press kbd { transform: translateY(2px); border-bottom-width: 1px; }
+
+/* Hero variant — same animation, scaled down for the smaller hero column */
+.demo--hero { width: 100%; max-width: 520px; }
+.demo--hero .demo__stage {
+  padding: 20px 18px 18px;
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(255,255,255,.07);
+}
+.demo--hero .demo__screen { font-size: .72rem; height: 288px; padding: 12px 14px 14px; }
+.demo--hero .demo__title { font-size: .68rem; }
+.demo--hero .demo__notif { width: 300px; top: 22px; padding: 11px 13px 10px; }
+.demo--hero .dn__txt strong { font-size: .8rem; }
+.demo--hero .dn__txt span { font-size: .72rem; }
+.demo--hero .dn__txt em { font-size: .64rem; }
+.demo--hero .demo__key { bottom: 16px; font-size: .72rem; }
 
 /* Compact feature list under the demo */
 .featlist {

@@ -5,22 +5,20 @@ import Foundation
 struct Config: Codable {
     var token: String
     var onboardingShown: Bool
-    var donationHidden: Bool
 
-    init(token: String, onboardingShown: Bool = false, donationHidden: Bool = false) {
+    init(token: String, onboardingShown: Bool = false) {
         self.token = token
         self.onboardingShown = onboardingShown
-        self.donationHidden = donationHidden
     }
 
-    enum CodingKeys: String, CodingKey { case token, onboardingShown, donationHidden }
+    enum CodingKeys: String, CodingKey { case token, onboardingShown }
 
     // Resilient decode: new fields missing from old config.json don't regenerate the token.
+    // Unknown keys (e.g. a legacy donationHidden) are simply ignored.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         token = try c.decode(String.self, forKey: .token)
         onboardingShown = (try? c.decode(Bool.self, forKey: .onboardingShown)) ?? false
-        donationHidden = (try? c.decode(Bool.self, forKey: .donationHidden)) ?? false
     }
 
     /// Loads from disk; if not found, generates new token and saves.
@@ -47,12 +45,6 @@ struct Config: Codable {
     /// Marks onboarding as seen and persists.
     mutating func markOnboardingShown() {
         onboardingShown = true
-        save()
-    }
-
-    /// Hides the donation section ("already donated") and persists.
-    mutating func hideDonation() {
-        donationHidden = true
         save()
     }
 
