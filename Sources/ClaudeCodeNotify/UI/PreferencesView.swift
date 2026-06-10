@@ -16,6 +16,17 @@ struct PreferencesView: View {
     @AppStorage("keychainDenied") private var keychainDenied: Bool = false
 
     var body: some View {
+        TabView {
+            generalTab
+                .tabItem { Label("General", systemImage: "gearshape") }
+            AccountsPrefsView()
+                .tabItem { Label("Accounts", systemImage: "person.2") }
+        }
+        .padding(.top, 14)
+        .frame(width: 460, height: 650)
+    }
+
+    private var generalTab: some View {
         Form {
             Section("Usage bars") {
                 Toggle("Show usage bars", isOn: $usageBarsEnabled)
@@ -57,7 +68,6 @@ struct PreferencesView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 460, height: 650)
     }
 
     @ViewBuilder

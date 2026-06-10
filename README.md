@@ -61,6 +61,7 @@ When shown, the notification appears centered at the top, over anything (includi
 - **🎚️ Make it yours** — per-type **duration** (`0` = stays until dismissed) and **sound** (system sounds or none, with preview); plus how the card/sound behaves while Claude's terminal or editor is already focused.
 - **📊 Lives in your menu bar** — a bell icon with a green/red connection dot; connect or disconnect anytime. No Dock icon.
 - **⚡ Live usage bars** — every notification and the menu show your Claude Code **5-hour rolling** and **weekly** usage, color-coded (green → yellow → orange → red) with a reset countdown. Reads your OAuth token directly from the macOS Keychain — no API key needed. Requires the Claude Code CLI to be installed.
+- **👥 Multi-account profiles** — use a personal and a work Claude account on the same machine and switch instantly, from the menu or with a **global hotkey** per profile. The active profile's emoji shows next to the menu bar icon, a confirmation card pops with that account's **fresh usage bars**, and inactive profiles keep their last-seen usage in the menu. Set it up in **Preferences → Accounts**: capture the account you're logged into, run `claude /login` with the other one, capture it too — done. Credentials are snapshotted in your macOS Keychain (never on disk), and switching never logs anyone out. Single-account users see no change at all.
 - **🔒 Local & private** — a tiny server listening only on `127.0.0.1`, validated with a token. Nothing leaves your machine.
 - **🚀 Open at Login** via `SMAppService`.
 

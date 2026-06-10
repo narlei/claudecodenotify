@@ -1,6 +1,12 @@
-### What's New in 1.1.3
+### What's New in 1.2.0
 
-- **Keychain "Always Allow" now sticks** — the keychain permission prompt no longer reappears after a reboot or app update. Click **Always Allow** once and you're done. Reading the token is now delegated to macOS's own `security` tool, so the grant persists for good.
+- **👥 Multi-account profiles** — keep your personal and work Claude accounts on the same machine and switch between them instantly:
+  - **Global hotkey per profile** (e.g. ⌃⌥⌘P → Personal, ⌃⌥⌘E → Work) or one click in the menu.
+  - The active profile's **emoji shows in the menu bar**, and a confirmation card pops with that account's **fresh usage bars** right after the switch.
+  - Inactive profiles keep their **last-seen usage** in the menu, so you know if the other account has room before switching.
+  - Setup in **Preferences → Accounts**: capture the account you're logged into, run `claude /login` with the other one — it's detected automatically — and capture it too.
+  - Logged in manually with `claude /login`? The app follows along; unknown accounts are never touched.
+  - Credentials are snapshotted in your **macOS Keychain** (never on disk), switching never logs anyone out, and with a single account nothing changes.
 
 ---
 
