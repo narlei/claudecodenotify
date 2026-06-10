@@ -37,10 +37,20 @@ final class StatusItemController: NSObject {
             }
         }
 
-        // When onboarding finishes, pop the menu open so the user sees the app in the menu bar.
+        // When onboarding finishes, pre-fetch usage then pop the menu open
+        // so the user sees usage bars on the very first open.
         NotificationCenter.default.addObserver(forName: .ccnotifyPopUpMenu,
                                                object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.statusItem.button?.performClick(nil) }
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                profileManager.reconcile()
+                if let usage = await profileManager.refreshActiveUsage() {
+                    self.menuUsage = usage
+                    self.rebuildMenu()
+                    ResetNotificationScheduler.schedule(from: usage)
+                }
+                self.statusItem.button?.performClick(nil)
+            }
         }
 
         HotKeyCenter.shared.onHotKey = { [weak self] profileID in

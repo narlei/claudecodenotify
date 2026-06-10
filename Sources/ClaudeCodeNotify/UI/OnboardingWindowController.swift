@@ -16,10 +16,8 @@ final class OnboardingWindowController {
         let hosting = NSHostingController(rootView: OnboardingView(token: token, onClose: { [weak self] in
             self?.window?.close()
             self?.window = nil
-            // Pop the menu bar open so the user sees the app is running.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                NotificationCenter.default.post(name: .ccnotifyPopUpMenu, object: nil)
-            }
+            // Trigger usage pre-fetch + menu pop-up so the user sees the app is running.
+            NotificationCenter.default.post(name: .ccnotifyPopUpMenu, object: nil)
         }))
         let win = NSWindow(contentViewController: hosting)
         win.title = "Welcome — ClaudeCodeNotify"
