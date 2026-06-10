@@ -11,6 +11,8 @@ import Foundation
 extension Notification.Name {
     /// Posted after any persisted profile change (menu, icon and preferences observe it).
     static let ccnotifyProfilesDidChange = Notification.Name("ccnotifyProfilesDidChange")
+    /// Posted when the onboarding screen closes, so the menu bar pops open to greet the user.
+    static let ccnotifyPopUpMenu = Notification.Name("ccnotifyPopUpMenu")
 }
 
 final class ProfileManager {

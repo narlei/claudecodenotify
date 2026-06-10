@@ -36,6 +36,13 @@ final class StatusItemController: NSObject {
                 HotKeyCenter.shared.register(profiles: self.profileManager.profiles)
             }
         }
+
+        // When onboarding finishes, pop the menu open so the user sees the app in the menu bar.
+        NotificationCenter.default.addObserver(forName: .ccnotifyPopUpMenu,
+                                               object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.statusItem.button?.performClick(nil) }
+        }
+
         HotKeyCenter.shared.onHotKey = { [weak self] profileID in
             self?.performSwitch(to: profileID)
         }
