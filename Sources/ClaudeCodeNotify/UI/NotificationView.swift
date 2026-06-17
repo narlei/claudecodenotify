@@ -4,48 +4,68 @@ import SwiftUI
 struct NotificationView: View {
     let event: NotificationEvent
     var hostAppName: String? = nil
+    /// When true, keyboard shortcuts are disabled and the hint reflects mouse-only use.
+    var dontStealFocus: Bool = false
+    /// Clicking the card body switches to the host terminal/editor.
+    var onActivate: () -> Void = {}
+    /// Clicking the × dismisses without switching.
+    var onDismiss: () -> Void = {}
 
     var previewUsage: UsageData? = nil
     @State private var usage: UsageData? = nil
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 14) {
-                Image(systemName: icon)
-                    .font(.system(size: 26))
-                    .foregroundStyle(tint)
-                    .frame(width: 34)
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 0) {
+                HStack(alignment: .top, spacing: 14) {
+                    Image(systemName: icon)
+                        .font(.system(size: 26))
+                        .foregroundStyle(tint)
+                        .frame(width: 34)
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(title)
-                        .font(.headline)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if let subtitle, !subtitle.isEmpty {
-                        Text(markdown(subtitle))
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(8)                                  // up to 8 lines; truncates beyond
-                            .fixedSize(horizontal: false, vertical: true)  // grows/shrinks with text
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(title)
+                            .font(.headline)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let subtitle, !subtitle.isEmpty {
+                            Text(markdown(subtitle))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(8)                                  // up to 8 lines; truncates beyond
+                                .fixedSize(horizontal: false, vertical: true)  // grows/shrinks with text
+                        }
+                        Text(hint)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .padding(.top, 2)
                     }
-                    Text("⏎ go to \(hostAppName ?? "Claude")   ·   esc dismiss")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                        .padding(.top, 2)
+                    Spacer(minLength: 0)
                 }
-                Spacer(minLength: 0)
-            }
-            .padding(16)
+                .padding(16)
 
-            if let display = usage ?? previewUsage {
-                UsageBarsView(usage: display)
+                if let display = usage ?? previewUsage {
+                    UsageBarsView(usage: display)
+                }
             }
+            .frame(width: 420)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(.white.opacity(0.08))
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .onTapGesture { onActivate() }
+
+            Button(action: onDismiss) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.secondary)
+                    .symbolRenderingMode(.hierarchical)
+            }
+            .buttonStyle(.plain)
+            .padding(8)
+            .help("Dismiss")
         }
-        .frame(width: 420)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(.white.opacity(0.08))
-        )
         .onAppear {
             if let previewUsage { usage = previewUsage }
         }
@@ -53,6 +73,13 @@ struct NotificationView: View {
             guard previewUsage == nil else { return }
             usage = await UsageFetcher.fetch()
         }
+    }
+
+    private var hint: String {
+        let host = hostAppName ?? "Claude"
+        return dontStealFocus
+            ? "click to go to \(host)   ·   × dismiss"
+            : "⏎ go to \(host)   ·   esc dismiss"
     }
 
     private var title: String {

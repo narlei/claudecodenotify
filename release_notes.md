@@ -1,3 +1,13 @@
+### What's New in 1.3.0
+
+**🎯 "Don't steal focus" mode** — keep typing while notifications appear.
+
+- A new **Preferences → Notifications** toggle lets the notification card show up **without grabbing focus** from whatever you're doing — no more losing your place mid-sentence in Slack, your editor, or anywhere else.
+- The card still pops, still plays its sound, and a **× button** dismisses it anytime. **Click the card** to jump to Claude's terminal.
+- Off by default, so nothing changes unless you want it: with the toggle off, the classic **Enter-to-jump** shortcut works exactly as before.
+
+---
+
 ### What's New in 1.2.0
 
 **👥 Multi-account profiles** — keep your personal and work Claude accounts on the same machine and switch between them in a single click, without ever logging out.
