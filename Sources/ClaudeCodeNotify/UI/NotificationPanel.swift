@@ -1,13 +1,30 @@
 import AppKit
+import SwiftUI
+
+/// Hosting view that reacts to the first click even when its window isn't key,
+/// so the card stays clickable in the non-focus-stealing mode.
+final class FirstMouseHostingView<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    required init(rootView: Content) { super.init(rootView: rootView) }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+}
 
 /// Notification panel. Centered at the top, above everything (including fullscreen).
 /// Unlike the old design, THIS captures keyboard (becomes key) so Enter works —
 /// an intentional choice for notifier mode.
 final class NotificationPanel: NSPanel {
-    init(contentView: NSView) {
+    /// When false, the panel never becomes key and clicks don't activate the app.
+    private let stealsFocus: Bool
+
+    init(contentView: NSView, stealsFocus: Bool = true) {
+        self.stealsFocus = stealsFocus
+        // .nonactivatingPanel lets the panel receive clicks without bringing the app forward.
+        let style: NSWindow.StyleMask = stealsFocus ? [.borderless] : [.borderless, .nonactivatingPanel]
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 420, height: 96),
-            styleMask: [.borderless], // no titlebar/chrome (avoids black line at the top)
+            styleMask: style, // no titlebar/chrome (avoids black line at the top)
             backing: .buffered,
             defer: false
         )
@@ -25,7 +42,7 @@ final class NotificationPanel: NSPanel {
         setContentSize(contentView.fittingSize)
     }
 
-    override var canBecomeKey: Bool { true }
+    override var canBecomeKey: Bool { stealsFocus }
     override var canBecomeMain: Bool { false }
 
     func positionTopCenter() {

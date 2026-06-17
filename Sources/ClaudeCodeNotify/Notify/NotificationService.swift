@@ -14,8 +14,9 @@ final class NotificationService {
     private var currentEvent: NotificationEvent?
     private var currentHostApp: NSRunningApplication?
     private var keyMonitor: Any?
-    private var clickMonitor: Any?
     private var dismissTask: Task<Void, Never>?
+    /// Whether the currently shown card stole focus (so auto-dismiss knows to restore it).
+    private var stealsFocusCurrent = true
 
     var onPortChange: ((UInt16) -> Void)?
 
@@ -67,18 +68,33 @@ final class NotificationService {
         let hostApp = resolvedHostApp ?? previousApp
         currentHostApp = hostApp
 
-        let hosting = NSHostingView(rootView: NotificationView(event: event, hostAppName: hostApp?.localizedName))
+        let stealsFocus = !preferences.dontStealFocus
+        stealsFocusCurrent = stealsFocus
+        let rootView = NotificationView(
+            event: event,
+            hostAppName: hostApp?.localizedName,
+            dontStealFocus: preferences.dontStealFocus,
+            onActivate: { [weak self] in self?.goToTerminal() },
+            // Restore focus only when we took it; in non-stealing mode focus never moved.
+            onDismiss: { [weak self] in self?.teardownPanel(restoreFocus: stealsFocus) }
+        )
+        let hosting = FirstMouseHostingView(rootView: rootView)
         hosting.frame = NSRect(origin: .zero, size: hosting.fittingSize)
-        let panel = NotificationPanel(contentView: hosting)
+        let panel = NotificationPanel(contentView: hosting, stealsFocus: stealsFocus)
         panel.positionTopCenter()
         self.panel = panel
 
-        // Captures keyboard: activates app and makes panel key (intentional for notifier mode).
-        NSApp.activate(ignoringOtherApps: true)
-        panel.makeKeyAndOrderFront(nil)
+        if stealsFocus {
+            // Captures keyboard: activates app and makes panel key (Enter/Esc work).
+            NSApp.activate(ignoringOtherApps: true)
+            panel.makeKeyAndOrderFront(nil)
+            installKeyMonitor()
+        } else {
+            // Show without stealing focus; clicks are handled inside the card view.
+            panel.orderFront(nil)
+        }
 
         if shouldPlaySound { NotificationSound.play(pref.soundName) }
-        installMonitors()
         scheduleAutoDismiss(after: pref.durationSeconds)
     }
 
@@ -87,9 +103,10 @@ final class NotificationService {
         teardownPanel(restoreFocus: false) // terminal is already activated
     }
 
-    // MARK: - Keyboard/click monitors
+    // MARK: - Keyboard monitor
 
-    private func installMonitors() {
+    /// Only used in focus-stealing mode (the panel is key). Clicks are handled inside the card view.
+    private func installKeyMonitor() {
         removeMonitors()
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] e in
             guard let self, self.panel != nil else { return e }
@@ -102,18 +119,11 @@ final class NotificationService {
                 return e
             }
         }
-        // Click outside (or anywhere) also goes to terminal? No — click on panel closes.
-        clickMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] e in
-            guard let self, let panel = self.panel else { return e }
-            if e.window == panel { self.goToTerminal(); return nil }
-            return e
-        }
     }
 
     private func removeMonitors() {
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
-        if let clickMonitor { NSEvent.removeMonitor(clickMonitor) }
-        keyMonitor = nil; clickMonitor = nil
+        keyMonitor = nil
     }
 
     private func scheduleAutoDismiss(after seconds: TimeInterval) {
@@ -122,7 +132,10 @@ final class NotificationService {
         dismissTask = Task { [weak self] in
             try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
             guard !Task.isCancelled else { return }
-            await MainActor.run { self?.teardownPanel(restoreFocus: true) }
+            await MainActor.run {
+                guard let self else { return }
+                self.teardownPanel(restoreFocus: self.stealsFocusCurrent)
+            }
         }
     }
 

@@ -46,6 +46,12 @@ struct PreferencesView: View {
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
+            Section("Notifications") {
+                Toggle("Don't steal focus from the active window", isOn: $store.prefs.dontStealFocus)
+                Text("When on, the card appears without interrupting what you're typing. The Enter shortcut (go to terminal) is disabled — click the card to switch, or the × to dismiss.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             Section("When Claude's terminal or editor is focused") {
                 Toggle("Show notification card", isOn: $store.prefs.showCardWhenHostFocused)
                 Toggle("Play notification sound", isOn: $store.prefs.playSoundWhenHostFocused)
@@ -63,7 +69,7 @@ struct PreferencesView: View {
                 typeRow($store.prefs.stop)
             }
             Section {
-                Text("Duration 0 = the notification stays until you dismiss it (Esc/click).")
+                Text("Duration 0 = the notification stays until you dismiss it (Esc, click, or ×).")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }

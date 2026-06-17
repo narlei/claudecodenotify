@@ -12,26 +12,32 @@ struct Preferences: Codable {
     var stop: TypePref
     var showCardWhenHostFocused: Bool
     var playSoundWhenHostFocused: Bool
+    /// When true, the card appears without stealing focus from the active window.
+    /// Trade-off: the Enter/Esc keyboard shortcuts are disabled (mouse-only).
+    var dontStealFocus: Bool
 
     static let `default` = Preferences(
         permission: TypePref(durationSeconds: 20, soundName: "Glass"),
         idle:       TypePref(durationSeconds: 20, soundName: "Tink"),
         stop:       TypePref(durationSeconds: 10, soundName: "Hero"),
         showCardWhenHostFocused: false,
-        playSoundWhenHostFocused: true
+        playSoundWhenHostFocused: true,
+        dontStealFocus: false
     )
 
     enum CodingKeys: String, CodingKey {
-        case permission, idle, stop, showCardWhenHostFocused, playSoundWhenHostFocused
+        case permission, idle, stop, showCardWhenHostFocused, playSoundWhenHostFocused, dontStealFocus
     }
 
     init(permission: TypePref, idle: TypePref, stop: TypePref,
-         showCardWhenHostFocused: Bool, playSoundWhenHostFocused: Bool) {
+         showCardWhenHostFocused: Bool, playSoundWhenHostFocused: Bool,
+         dontStealFocus: Bool) {
         self.permission = permission
         self.idle = idle
         self.stop = stop
         self.showCardWhenHostFocused = showCardWhenHostFocused
         self.playSoundWhenHostFocused = playSoundWhenHostFocused
+        self.dontStealFocus = dontStealFocus
     }
 
     // New preferences missing from old files get defaults without losing
@@ -43,6 +49,7 @@ struct Preferences: Codable {
         stop = try c.decode(TypePref.self, forKey: .stop)
         showCardWhenHostFocused = (try? c.decode(Bool.self, forKey: .showCardWhenHostFocused)) ?? false
         playSoundWhenHostFocused = (try? c.decode(Bool.self, forKey: .playSoundWhenHostFocused)) ?? true
+        dontStealFocus = (try? c.decode(Bool.self, forKey: .dontStealFocus)) ?? false
     }
 
     /// Available system sounds (in /System/Library/Sounds). "" = None.
