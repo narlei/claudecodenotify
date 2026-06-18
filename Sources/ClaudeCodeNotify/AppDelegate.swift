@@ -25,6 +25,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             OnboardingWindowController.shared.show(token: config.token, isFirstLaunch: true)
             config.markOnboardingShown()
         }
+
+        // Dev preview: `CCNOTIFY_STAR_PROMPT_PREVIEW=1 make run` shows the star
+        // prompt at launch so its look can be checked without hitting the
+        // notification threshold. Buttons here are side-effect free (no persisted
+        // state) — "Star" just opens the repo. Never fires for end users.
+        if ProcessInfo.processInfo.environment["CCNOTIFY_STAR_PROMPT_PREVIEW"] != nil {
+            StarPromptWindowController.shared.show(
+                onStar: { SupportLinks.open(SupportLinks.repoPage) },
+                onLater: {}
+            )
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

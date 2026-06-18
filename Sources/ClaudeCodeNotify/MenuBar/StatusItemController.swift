@@ -166,8 +166,8 @@ final class StatusItemController: NSObject {
         if Updater.shared.hasNewVersion { updateItem.image = statusDot(.systemBlue) }
 
         menu.addItem(.separator())
-        let support = menu.addItem(withTitle: "Buy me a coffee ☕",
-                                   action: #selector(openSupport), keyEquivalent: "")
+        let support = menu.addItem(withTitle: "Enjoying it? Star on GitHub ⭐",
+                                   action: #selector(openStar), keyEquivalent: "")
         support.target = self
 
         menu.addItem(.separator())
@@ -240,8 +240,8 @@ final class StatusItemController: NSObject {
         return img
     }
 
-    @objc private func openSupport() {
-        SupportLinks.open(SupportLinks.supportPage)
+    @objc private func openStar() {
+        SupportLinks.open(SupportLinks.repoPage)
     }
 
     @objc private func openWelcome() {
