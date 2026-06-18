@@ -44,4 +44,79 @@ final class ConfigTests: SandboxedTestCase {
         XCTAssertEqual(cfg.token, "legacy-token")
         XCTAssertFalse(cfg.onboardingShown)
     }
+
+    // MARK: - Star prompt
+
+    func testNotEligibleBeforeThresholdAndEligibleAtThreshold() {
+        var cfg = Config(token: "t")
+        XCTAssertFalse(cfg.isStarPromptEligible, "should not be eligible with 0 notifications")
+
+        // Drive deliveries up to one short of the threshold.
+        for _ in 0..<(Config.starPromptThreshold - 1) {
+            cfg.recordNotificationDelivered()
+        }
+        XCTAssertFalse(cfg.isStarPromptEligible, "should not be eligible just below threshold")
+
+        cfg.recordNotificationDelivered() // now exactly at threshold
+        XCTAssertEqual(cfg.notificationsDelivered, Config.starPromptThreshold)
+        XCTAssertTrue(cfg.isStarPromptEligible, "should be eligible exactly at threshold")
+    }
+
+    func testDeferredSchedulesNextEligibleAndBlocksUntilThen() throws {
+        var cfg = Config(token: "t", notificationsDelivered: Config.starPromptThreshold)
+        XCTAssertTrue(cfg.isStarPromptEligible)
+
+        cfg.starPromptDeferred()
+        XCTAssertEqual(cfg.starPromptDeferCount, 1)
+        XCTAssertFalse(cfg.starPromptDone)
+        XCTAssertFalse(cfg.isStarPromptEligible, "should not be eligible right after deferring")
+
+        // Next eligible date should be ~7 days out.
+        let next = try XCTUnwrap(cfg.starPromptNextEligibleDate)
+        let expected = Date().addingTimeInterval(Config.starPromptDeferInterval)
+        XCTAssertEqual(next.timeIntervalSinceReferenceDate,
+                       expected.timeIntervalSinceReferenceDate,
+                       accuracy: 5,
+                       "next eligible date should be ~7 days out")
+    }
+
+    func testMaxDefersMarksDoneAndNeverEligible() {
+        var cfg = Config(token: "t", notificationsDelivered: Config.starPromptThreshold)
+        for _ in 0..<Config.starPromptMaxDefers {
+            cfg.starPromptDeferred()
+        }
+        XCTAssertEqual(cfg.starPromptDeferCount, Config.starPromptMaxDefers)
+        XCTAssertTrue(cfg.starPromptDone, "should be done after max defers")
+        XCTAssertFalse(cfg.isStarPromptEligible, "should never be eligible after max defers")
+
+        // Even with the cooldown cleared, done keeps it from reappearing.
+        cfg.starPromptNextEligibleDate = nil
+        XCTAssertFalse(cfg.isStarPromptEligible)
+    }
+
+    func testCompletedMarksDoneAndNotEligible() {
+        var cfg = Config(token: "t", notificationsDelivered: Config.starPromptThreshold)
+        XCTAssertTrue(cfg.isStarPromptEligible)
+
+        cfg.starPromptCompleted()
+        XCTAssertTrue(cfg.starPromptDone)
+        XCTAssertFalse(cfg.isStarPromptEligible, "should not be eligible once completed")
+
+        XCTAssertTrue(Config.loadOrCreate().starPromptDone, "completion should persist")
+    }
+
+    func testResilientDecodeStarFieldsDefaultWhenMissing() throws {
+        // Old config.json with only token + onboardingShown — new star fields default.
+        _ = try? AppPaths.ensureSupportDirectory()
+        try #"{"token":"legacy","onboardingShown":true}"#
+            .write(to: AppPaths.configFile, atomically: true, encoding: .utf8)
+
+        let cfg = Config.loadOrCreate()
+        XCTAssertEqual(cfg.token, "legacy")
+        XCTAssertTrue(cfg.onboardingShown)
+        XCTAssertEqual(cfg.notificationsDelivered, 0)
+        XCTAssertEqual(cfg.starPromptDeferCount, 0)
+        XCTAssertNil(cfg.starPromptNextEligibleDate)
+        XCTAssertFalse(cfg.starPromptDone)
+    }
 }

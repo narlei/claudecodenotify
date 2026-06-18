@@ -245,6 +245,27 @@
     .catch(function () { /* offline, rate-limited, or no releases — stay hidden */ });
 })();
 
+// GitHub star counter — reveals the live star count once the project has some
+// traction. Public API, no auth. Stays hidden below the threshold or on failure.
+(function () {
+  "use strict";
+
+  var STAR_THRESHOLD = 50;
+  var el = document.getElementById("star-count");
+  if (!el) return;
+
+  fetch("https://api.github.com/repos/narlei/claudecodenotify")
+    .then(function (res) { return res.ok ? res.json() : Promise.reject(res.status); })
+    .then(function (repo) {
+      var count = repo && repo.stargazers_count;
+      if (typeof count === "number" && count >= STAR_THRESHOLD) {
+        el.textContent = "★ " + count.toLocaleString("en-US") + " stars";
+        el.hidden = false;
+      }
+    })
+    .catch(function () { /* offline, rate-limited, or below threshold — stay hidden */ });
+})();
+
 // Click tracking for buttons & important links (sends to the same analytics as page views).
 // Uses data-track="event-name" on elements. Works for nav, hero CTAs, download buttons,
 // copy commands, support cards, and social links. Deduped per IP+day+event server-side.

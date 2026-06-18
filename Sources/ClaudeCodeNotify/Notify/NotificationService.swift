@@ -43,6 +43,11 @@ final class NotificationService {
     private func present(_ event: NotificationEvent) {
         guard event.shouldNotify else { return }
 
+        // Count this delivery and capture star-prompt eligibility BEFORE any
+        // branch returns, so the sound-only path also gets a chance to prompt.
+        config.recordNotificationDelivered()
+        let showStarPrompt = config.isStarPromptEligible
+
         let frontmostApp = NSWorkspace.shared.frontmostApplication
         let resolvedHostApp = TerminalActivator.resolveHost(pids: event.hostPIDs,
                                                             termProgram: event.termProgram)
@@ -57,6 +62,7 @@ final class NotificationService {
         // Sound without card doesn't change focus or dismiss a visible notification.
         guard shouldShowCard else {
             if shouldPlaySound { NotificationSound.play(pref.soundName) }
+            maybeShowStarPrompt(showStarPrompt)
             return
         }
 
@@ -96,6 +102,24 @@ final class NotificationService {
 
         if shouldPlaySound { NotificationSound.play(pref.soundName) }
         scheduleAutoDismiss(after: pref.durationSeconds)
+
+        // After the card is set up, so the star window doesn't fight it.
+        maybeShowStarPrompt(showStarPrompt)
+    }
+
+    /// Presents the GitHub star prompt when eligible, wiring the callbacks back
+    /// into config so the prompt state advances (completed / deferred).
+    private func maybeShowStarPrompt(_ shouldShow: Bool) {
+        guard shouldShow else { return }
+        StarPromptWindowController.shared.show(
+            onStar: { [weak self] in
+                SupportLinks.open(SupportLinks.repoPage)
+                self?.config.starPromptCompleted()
+            },
+            onLater: { [weak self] in
+                self?.config.starPromptDeferred()
+            }
+        )
     }
 
     private func goToTerminal() {

@@ -52,6 +52,9 @@
       gap: 18px;
       margin: 2.4rem 0 0;
     }
+    /* Downloads row carries an extra GitHub-stars card → four across on desktop.
+       The max-width:700px rule below still collapses it to a single column. */
+    .stats-summary--four { grid-template-columns: repeat(4, 1fr); }
     .stat-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -313,11 +316,15 @@
         <h1 id="stats-title" class="stats-hero__title">Download Stats</h1>
         <p class="stats-hero__subtitle">Updated every time you load this page.</p>
 
-        <div class="stats-summary" id="stats-summary" aria-live="polite">
+        <div class="stats-summary stats-summary--four" id="stats-summary" aria-live="polite">
           <!-- filled by JS -->
           <div class="stat-card">
             <div class="stat-card__label">Total downloads</div>
             <div class="stat-card__value stat-card__value--coral skeleton" style="width:80px;height:2.2rem;">&nbsp;</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">GitHub stars</div>
+            <div class="stat-card__value stat-card__value--coral skeleton" style="width:64px;height:2.2rem;">&nbsp;</div>
           </div>
           <div class="stat-card">
             <div class="stat-card__label">Releases</div>
@@ -430,6 +437,7 @@
 
   <script>
     const API = 'https://api.github.com/repos/narlei/claudecodenotify/releases';
+    const REPO_API = 'https://api.github.com/repos/narlei/claudecodenotify';
 
     // Human labels for tracked click events (data-track values from the landing page)
     const EVENT_LABELS = {
@@ -529,13 +537,19 @@
       });
     }
 
-    function renderSummary(releases, total) {
+    function renderSummary(releases, total, stars) {
       const summary = document.getElementById('stats-summary');
+      const starsValue = (typeof stars === 'number') ? `★ ${formatNum(stars)}` : '—';
       summary.innerHTML = `
         <div class="stat-card">
           <div class="stat-card__label">Total downloads</div>
           <div class="stat-card__value stat-card__value--coral">${formatNum(total)}</div>
           <div class="stat-card__sub">across all releases</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">GitHub stars</div>
+          <div class="stat-card__value stat-card__value--coral">${starsValue}</div>
+          <div class="stat-card__sub">stargazers</div>
         </div>
         <div class="stat-card">
           <div class="stat-card__label">Releases</div>
@@ -548,6 +562,19 @@
           <div class="stat-card__sub">${releases[0] ? formatDate(releases[0].published_at) : ''}</div>
         </div>
       `;
+    }
+
+    // Repo stargazer count for the summary. Resilient: returns null on any failure
+    // so the downloads dashboard still renders without a stars number.
+    async function fetchStars() {
+      try {
+        const res = await fetch(REPO_API);
+        if (!res.ok) return null;
+        const repo = await res.json();
+        return (typeof repo.stargazers_count === 'number') ? repo.stargazers_count : null;
+      } catch {
+        return null;
+      }
     }
 
     function renderReleases(releases, maxDownloads) {
@@ -594,7 +621,7 @@
 
     async function loadStats() {
       try {
-        const res = await fetch(API);
+        const [res, stars] = await Promise.all([fetch(API), fetchStars()]);
         if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
         const releases = await res.json();
 
@@ -606,7 +633,7 @@
         const grandTotal = releasesWithTotals.reduce((s, r) => s + r._total, 0);
         const maxDownloads = Math.max(...releasesWithTotals.map(r => r._total), 1);
 
-        renderSummary(releases, grandTotal);
+        renderSummary(releases, grandTotal, stars);
         renderChart(releasesWithTotals);
         renderReleases(releasesWithTotals, maxDownloads);
       } catch (err) {
