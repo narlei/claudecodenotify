@@ -1,23 +1,11 @@
-### What's New in 1.3.0
+### What's New in 1.4.0
 
-**🎯 "Don't steal focus" mode** — keep typing while notifications appear.
+**💻 Universal app — now runs on Intel Macs and macOS 12 (Monterey).**
 
-- A new **Preferences → Notifications** toggle lets the notification card show up **without grabbing focus** from whatever you're doing — no more losing your place mid-sentence in Slack, your editor, or anywhere else.
-- The card still pops, still plays its sound, and a **× button** dismisses it anytime. **Click the card** to jump to Claude's terminal.
-- Off by default, so nothing changes unless you want it: with the toggle off, the classic **Enter-to-jump** shortcut works exactly as before.
+- **Runs on Intel** — the app now ships as a **Universal binary**, running natively on both **Intel** and **Apple Silicon**. No Rosetta needed.
+- **macOS 12 Monterey supported** — the minimum is now **macOS 12** (previously macOS 13+), so older Macs are welcome.
+- **Open at Login everywhere** — uses the modern `SMAppService` on macOS 13+ and a LaunchAgent fallback on macOS 12, so auto-start works on every supported version.
 
----
-
-### What's New in 1.2.0
-
-**👥 Multi-account profiles** — keep your personal and work Claude accounts on the same machine and switch between them in a single click, without ever logging out.
-
-- **Instant switching** — pick an account from the menu bar, or assign a **global hotkey per profile** (e.g. ⌃⌥⌘P → Personal, ⌃⌥⌘E → Work) and swap without leaving your terminal.
-- **Always know which account is active** — each profile's **emoji shows right in the menu bar**, and a confirmation card pops up after every switch with that account's **fresh usage bars**.
-- **See before you switch** — inactive profiles keep their **last-seen usage** in the menu, so you know if the other account still has room.
-- **Two-minute setup** in **Preferences → Accounts** — capture the account you're already logged into, run `claude /login` with the other one (it's detected automatically), and capture that too.
-- **Follows your manual logins** — log in by hand with `claude /login` and the app keeps up; accounts it doesn't manage are never touched.
-- **Private by design** — credentials are snapshotted into your **macOS Keychain** (never written to disk), switching never logs anyone out, and if you only use one account nothing changes.
 
 ---
 
@@ -51,7 +39,7 @@ brew install narlei/tap/claudecodenotify
 ### Connect
 4. Click the bell in the menu bar → **Connect Claude Code**.
 
-Requires **macOS 13+** on **Apple Silicon**.
+Requires **macOS 12+** (Monterey or later) — Universal binary, runs natively on **Intel and Apple Silicon**.
 
 ### Support ☕
 If it saves you trips to the terminal, consider buying me a coffee:

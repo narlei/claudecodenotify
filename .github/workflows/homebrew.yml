@@ -53,7 +53,7 @@ jobs:
             desc "Native macOS notifications for Claude Code"
             homepage "https://github.com/narlei/claudecodenotify"
 
-            depends_on macos: ">= :ventura"
+            depends_on macos: ">= :monterey"
 
             app "ClaudeCodeNotify.app"
 
@@ -64,7 +64,6 @@ jobs:
             end
 
             caveats do
-              requires_rosetta
               <<~EOS
                 To complete installation, open ClaudeCodeNotify from Launchpad or Applications
                 and click "Install Hook" in the status bar menu.

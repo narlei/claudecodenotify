@@ -167,7 +167,7 @@ struct AccountsPrefsView: View {
                 }
             }
         }
-        .formStyle(.grouped)
+        .groupedFormStyleIfAvailable()
         .onAppear { model.startPolling() }
         .onDisappear { model.stopPolling() }
         .confirmationDialog("Delete profile \"\(profilePendingDeletion?.name ?? "")\"?",

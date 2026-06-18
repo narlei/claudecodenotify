@@ -32,6 +32,14 @@ jobs:
       - name: Assemble .app (Info.plist + ad-hoc sign)
         run: ./Scripts/build-app.sh release
 
+      - name: Verify universal binary (x86_64 + arm64)
+        run: |
+          BIN=ClaudeCodeNotify.app/Contents/MacOS/ClaudeCodeNotify
+          ARCHS=$(lipo -archs "$BIN")
+          echo "archs: $ARCHS"
+          echo "$ARCHS" | grep -q x86_64 && echo "$ARCHS" | grep -q arm64 \
+            || { echo "::error::binary is not universal: $ARCHS"; exit 1; }
+
       - name: Verify signature
         run: codesign --verify --verbose ClaudeCodeNotify.app
 

@@ -79,9 +79,7 @@ final class Updater {
     
     private func getAppIcon() -> NSImage? {
         if let icon = NSImage(named: "AppIcon") { return icon }
-        let renderer = ImageRenderer(content: IconRenderer.claudeNotifyIcon(art: 64))
-        renderer.scale = 2
-        return renderer.nsImage
+        return ViewRasterizer.nsImage(from: IconRenderer.claudeNotifyIcon(art: 64), scale: 2)
     }
     
     private func showUpdateAvailable(latestVersion: String, currentVersion: String, url: URL) {

@@ -73,7 +73,7 @@ struct PreferencesView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
-        .formStyle(.grouped)
+        .groupedFormStyleIfAvailable()
     }
 
     @ViewBuilder

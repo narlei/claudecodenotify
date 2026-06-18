@@ -36,9 +36,9 @@ enum NotificationRenderer {
         let measurer = NSHostingView(rootView: stack)
         let naturalSize = measurer.fittingSize
 
-        let renderer = ImageRenderer(content: stack.frame(width: naturalSize.width, height: naturalSize.height))
-        renderer.scale = 2
-        guard let image = renderer.nsImage, let tiff = image.tiffRepresentation,
+        let sized = stack.frame(width: naturalSize.width, height: naturalSize.height)
+        guard let image = ViewRasterizer.nsImage(from: sized, scale: 2),
+              let tiff = image.tiffRepresentation,
               let bmp = NSBitmapImageRep(data: tiff),
               let png = bmp.representation(using: .png, properties: [:]) else { return }
         try? png.write(to: URL(fileURLWithPath: path))

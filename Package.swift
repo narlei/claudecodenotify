@@ -4,7 +4,9 @@ import PackageDescription
 let package = Package(
     name: "ClaudeCodeNotify",
     platforms: [
-        .macOS(.v13) // SMAppService.mainApp exige macOS 13+
+        // Universal (Intel + Apple Silicon), Monterey+. macOS 13-only APIs
+        // (SMAppService, ImageRenderer, .formStyle) are gated behind #available in code.
+        .macOS(.v12)
     ],
     targets: [
         .executableTarget(
