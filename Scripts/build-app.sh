@@ -3,7 +3,9 @@
 #   - copia o executável para Contents/MacOS/
 #   - injeta o Info.plist (LSUIElement)
 #   - empacota o bridge.sh.template em Contents/Resources/
-#   - faz ad-hoc codesign (app não-assinado, roda em Apple Silicon)
+#   - faz ad-hoc codesign (app não-assinado)
+#
+# Builds a Universal binary (x86_64 + arm64) so it runs natively on Intel and Apple Silicon.
 #
 # Uso: Scripts/build-app.sh [debug|release]   (default: release)
 set -euo pipefail
@@ -12,11 +14,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG="${1:-release}"
 APP_NAME="ClaudeCodeNotify"
 APP="$ROOT/$APP_NAME.app"
+# Universal: same --arch flags must go to both `swift build` and `--show-bin-path`
+# so the latter resolves the universal output dir (.build/apple/Products/<config>).
+ARCHS=(--arch arm64 --arch x86_64)
 
-echo "==> swift build -c $CONFIG"
-swift build -c "$CONFIG" --package-path "$ROOT"
+echo "==> swift build -c $CONFIG (universal: arm64 + x86_64)"
+swift build -c "$CONFIG" --package-path "$ROOT" "${ARCHS[@]}"
 
-BIN="$(swift build -c "$CONFIG" --package-path "$ROOT" --show-bin-path)/$APP_NAME"
+BIN="$(swift build -c "$CONFIG" --package-path "$ROOT" "${ARCHS[@]}" --show-bin-path)/$APP_NAME"
 if [ ! -x "$BIN" ]; then
   echo "ERRO: binário não encontrado em $BIN" >&2
   exit 1

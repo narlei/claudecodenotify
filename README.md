@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/macOS-13%2B-262624" alt="macOS 13+">
-  <img src="https://img.shields.io/badge/Apple%20Silicon-arm64-262624" alt="Apple Silicon">
+  <img src="https://img.shields.io/badge/macOS-12%2B-262624" alt="macOS 12+">
+  <img src="https://img.shields.io/badge/Universal-Intel%20%2B%20Apple%20Silicon-262624" alt="Universal (Intel + Apple Silicon)">
   <a href="https://claudecodenotify.narlei.com"><img src="https://img.shields.io/badge/website-claudecodenotify.narlei.com-D9755E" alt="Website"></a>
 </p>
 
@@ -62,11 +62,11 @@ When shown, the notification appears centered at the top, over anything (includi
 - **⚡ Live usage bars** — every notification and the menu show your Claude Code **5-hour rolling** and **weekly** usage, color-coded (green → yellow → orange → red) with a reset countdown. Reads your OAuth token directly from the macOS Keychain — no API key needed. Requires the Claude Code CLI to be installed.
 - **👥 Multi-account profiles** — use a personal and a work Claude account on the same machine and switch instantly, from the menu or with a **global hotkey** per profile. The active profile's emoji shows next to the menu bar icon, a confirmation card pops with that account's **fresh usage bars**, and inactive profiles keep their last-seen usage in the menu. Set it up in **Preferences → Accounts**: capture the account you're logged into, run `claude /login` with the other one, capture it too — done. Credentials are snapshotted in your macOS Keychain (never on disk), and switching never logs anyone out. Single-account users see no change at all.
 - **🔒 Local & private** — a tiny server listening only on `127.0.0.1`, validated with a token. Nothing leaves your machine.
-- **🚀 Open at Login** via `SMAppService`.
+- **🚀 Open at Login** — via `SMAppService` on macOS 13+, a LaunchAgent on macOS 12.
 
 ## Installation
 
-Requires **macOS 13+** on **Apple Silicon**.
+Requires **macOS 12+** (Monterey or later). The app is a **Universal binary** — it runs natively on both **Intel and Apple Silicon**.
 
 ### Option 1: Homebrew (Recommended)
 
@@ -114,7 +114,7 @@ make help       # list all targets
 
 ## Distribution
 
-Unsigned app (no paid Apple account): ad-hoc signed, shipped on GitHub Releases as a drag-to-Applications **`ClaudeCodeNotify.dmg`** (`make dmg`) or a versioned **`.zip`** (`make zip`). The stable DMG name powers the website's latest-release download link. First launch needs right-click → Open (Gatekeeper). Apple Silicon.
+Unsigned app (no paid Apple account): ad-hoc signed, shipped on GitHub Releases as a drag-to-Applications **`ClaudeCodeNotify.dmg`** (`make dmg`) or a versioned **`.zip`** (`make zip`). The stable DMG name powers the website's latest-release download link. First launch needs right-click → Open (Gatekeeper). Universal binary (Intel + Apple Silicon).
 
 ## Support
 

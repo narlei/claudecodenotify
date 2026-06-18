@@ -100,9 +100,8 @@ enum IconRenderer {
     }
 
     private static func write(view: some View, to path: String) {
-        let renderer = ImageRenderer(content: view)
-        renderer.scale = 2
-        guard let image = renderer.nsImage, let tiff = image.tiffRepresentation,
+        guard let image = ViewRasterizer.nsImage(from: view, scale: 2),
+              let tiff = image.tiffRepresentation,
               let bmp = NSBitmapImageRep(data: tiff),
               let png = bmp.representation(using: .png, properties: [:]) else { return }
         try? png.write(to: URL(fileURLWithPath: path))
@@ -127,9 +126,9 @@ enum IconRenderer {
         }
         .frame(width: w, height: h)
 
-        let renderer = ImageRenderer(content: view)
-        renderer.scale = 1 // px = pt: matches the dmgbuild/create-dmg window (660×400)
-        guard let image = renderer.nsImage, let tiff = image.tiffRepresentation,
+        // scale 1 → px = pt: matches the dmgbuild/create-dmg window (660×400)
+        guard let image = ViewRasterizer.nsImage(from: view, scale: 1),
+              let tiff = image.tiffRepresentation,
               let bmp = NSBitmapImageRep(data: tiff),
               let png = bmp.representation(using: .png, properties: [:]) else { return }
         try? png.write(to: URL(fileURLWithPath: path))
@@ -152,9 +151,7 @@ enum IconRenderer {
     /// Template image (black + alpha) for NSStatusItem — the system paints it white/black.
     static func menuBarImage(pt: CGFloat = 18) -> NSImage? {
         let view = menuBarGlyph(pt: pt).foregroundStyle(.black)
-        let renderer = ImageRenderer(content: view)
-        renderer.scale = 2
-        guard let img = renderer.nsImage else { return nil }
+        guard let img = ViewRasterizer.nsImage(from: view, scale: 2) else { return nil }
         img.isTemplate = true
         return img
     }
