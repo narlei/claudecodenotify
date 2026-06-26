@@ -10,6 +10,13 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/narlei/claudecodenotify/stargazers"><img src="https://img.shields.io/github/stars/narlei/claudecodenotify?style=flat&color=D9755E&label=stars" alt="GitHub stars"></a>
+  <a href="https://github.com/narlei/claudecodenotify/releases/latest"><img src="https://img.shields.io/github/v/release/narlei/claudecodenotify?color=262624&label=release" alt="Latest release"></a>
+  <a href="https://github.com/narlei/claudecodenotify/releases"><img src="https://img.shields.io/github/downloads/narlei/claudecodenotify/total?color=262624&label=downloads" alt="Total downloads"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/narlei/claudecodenotify?color=262624" alt="License: MIT"></a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/macOS-12%2B-262624" alt="macOS 12+">
   <img src="https://img.shields.io/badge/Universal-Intel%20%2B%20Apple%20Silicon-262624" alt="Universal (Intel + Apple Silicon)">
   <a href="https://claudecodenotify.narlei.com"><img src="https://img.shields.io/badge/website-claudecodenotify.narlei.com-D9755E" alt="Website"></a>
@@ -36,6 +43,7 @@ A macOS **menu bar** app that pops a **floating notification in the center of yo
 - [Build (development)](#build-development)
 - [Distribution](#distribution)
 - [Support](#support)
+- [License](#license)
 
 ## How it works
 
@@ -63,6 +71,10 @@ When shown, the notification appears centered at the top, over anything (includi
 - **👥 Multi-account profiles** — use a personal and a work Claude account on the same machine and switch instantly, from the menu or with a **global hotkey** per profile. The active profile's emoji shows next to the menu bar icon, a confirmation card pops with that account's **fresh usage bars**, and inactive profiles keep their last-seen usage in the menu. Set it up in **Preferences → Accounts**: capture the account you're logged into, run `claude /login` with the other one, capture it too — done. Credentials are snapshotted in your macOS Keychain (never on disk), and switching never logs anyone out. Single-account users see no change at all.
 - **🔒 Local & private** — a tiny server listening only on `127.0.0.1`, validated with a token. Nothing leaves your machine.
 - **🚀 Open at Login** — via `SMAppService` on macOS 13+, a LaunchAgent on macOS 12.
+
+<p align="center">
+  <img src="website/assets/menu.png" width="320" alt="The ClaudeCodeNotify menu bar dropdown: a green connected status, live 5-hour (24%) and weekly (55%) usage bars with reset countdowns, and quick actions — Disconnect, Welcome, Preferences, Check for Updates, Open at Login, and Star on GitHub">
+</p>
 
 ## Installation
 
@@ -92,7 +104,17 @@ To stop it: **Disconnect Claude Code** in the menu.
 
 On first launch a **welcome screen** explains how it works and lets you **Connect Claude Code**, toggle **Open at Login**, and open **Preferences** right away. Reopen it anytime from the menu (**Welcome…**).
 
+<p align="center">
+  <img src="website/assets/onboarding.png" width="720" alt="The welcome screen: a 3×2 grid of feature cards and a Next Steps row showing Claude Code connected, Keychain access granted, and Open at login all checked off">
+</p>
+
 Everything lives in the **menu bar** (the bell icon). The menu shows a **green/red dot** for the connection status, plus Connect/Disconnect, Welcome, Preferences, Check for Updates, and Open at Login.
+
+Fine-tune everything in **Preferences** — toggle the usage bars, set focus behavior, and pick a per-type duration and sound:
+
+<p align="center">
+  <img src="website/assets/preferences.png" width="440" alt="The Preferences General tab: toggles for usage bars and focus behavior, plus per-type notification duration and sound settings">
+</p>
 
 > The app generates a token on first run and writes `bridge.sh` to `~/.ccnotify/`; its store (token, port, preferences) lives in `~/Library/Application Support/ClaudeCodeNotify/`. Everything is local and only listens on `127.0.0.1`.
 
@@ -125,6 +147,12 @@ If ClaudeCodeNotify saves you trips to the terminal, consider buying me a coffee
 - **Pix:** `contato@narlei.com`
 
 You can also support it from the app: menu bar → **Support ClaudeCodeNotify ☕**.
+
+If it earns a spot in your menu bar, a ⭐ on the repo helps others find it.
+
+## License
+
+Released under the [MIT License](LICENSE) © Narlei Moreira.
 
 ---
 

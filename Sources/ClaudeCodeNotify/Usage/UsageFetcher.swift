@@ -11,7 +11,11 @@ enum UsageFetcher {
     private static let credentialStore: CredentialStoring = SecurityToolCredentialStore()
 
     private static let apiURL = URL(string: "https://api.anthropic.com/v1/messages")!
-    private static let claudeCandidates = ["/opt/homebrew/bin/claude", "/usr/local/bin/claude", "claude"]
+    private static let claudeCandidates = [
+        "\(NSHomeDirectory())/.local/bin/claude",
+        "/opt/homebrew/bin/claude",
+        "/usr/local/bin/claude",
+    ]
     private static let refreshCooldown: TimeInterval = 5 * 60
     private static var lastRefreshAttempt: Date = .distantPast
 
@@ -25,6 +29,14 @@ enum UsageFetcher {
     static var keychainDenied: Bool {
         get { UserDefaults.standard.bool(forKey: "keychainDenied") }
         set { UserDefaults.standard.set(newValue, forKey: "keychainDenied") }
+    }
+
+    /// Whether a keychain read has ever succeeded. Persisted so the UI (welcome
+    /// screen, preferences) can reflect already-granted access across launches,
+    /// instead of asking again every time. Updated by `readToken()` on every read.
+    static var keychainGranted: Bool {
+        get { UserDefaults.standard.bool(forKey: "keychainGranted") }
+        set { UserDefaults.standard.set(newValue, forKey: "keychainGranted") }
     }
 
     static func resetKeychainPermission() {
@@ -76,12 +88,18 @@ enum UsageFetcher {
         )
     }
 
+    /// First `claude` candidate that exists and is executable on this machine.
+    private static func resolveClaude() -> String? {
+        claudeCandidates.first { FileManager.default.isExecutableFile(atPath: $0) }
+    }
+
     private static func attemptCliRefresh() async -> Bool {
         guard Date().timeIntervalSince(lastRefreshAttempt) > refreshCooldown else { return false }
+        guard let claudePath = resolveClaude() else { return false }
         lastRefreshAttempt = Date()
         return await withCheckedContinuation { continuation in
             let p = Process()
-            p.executableURL = URL(fileURLWithPath: claudeCandidates[0])
+            p.executableURL = URL(fileURLWithPath: claudePath)
             p.arguments = ["-p", "hi", "--max-budget-usd", "0.01"]
             p.standardInput = FileHandle.nullDevice
             p.standardOutput = FileHandle.nullDevice
@@ -100,9 +118,13 @@ enum UsageFetcher {
     private static func readToken() -> String? {
         switch credentialStore.readClaudeCredentials() {
         case .success(let blob):
+            // Access works — remember it and clear any stale denial.
+            keychainGranted = true
+            keychainDenied = false
             return extractAccessToken(blob)
         case .denied:
             keychainDenied = true
+            keychainGranted = false
             return nil
         case .notFound, .failure:
             // Not logged in via CLI / custom API, or transient error.

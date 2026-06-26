@@ -9,7 +9,8 @@ VERSION := $(shell /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString
 
 .DEFAULT_GOAL := build
 
-.PHONY: setup build run app dev zip dmg release install uninstall clean help
+.PHONY: setup build run app dev zip dmg release install uninstall clean help \
+        bump_patch bump_minor bump_major
 
 help: ## Lists available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -68,3 +69,25 @@ uninstall: ## Runs app with --uninstall (removes hook from settings.json, with b
 
 clean: ## Removes .build/, $(APP) and $(DIST)/
 	rm -rf .build $(APP) $(DIST)
+
+# Bumps the semantic version in Resources/Info.plist.
+# $(1) = patch | minor | major — resets lower components and bumps the build number.
+define bump_version
+	@cur=$$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist); \
+	new=$$(echo "$$cur" | awk -F. -v part="$(1)" '{if(part=="major"){$$1++;$$2=0;$$3=0}else if(part=="minor"){$$2++;$$3=0}else{$$3++}printf "%d.%d.%d",$$1,$$2,$$3}'); \
+	build=$$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" Resources/Info.plist); \
+	newbuild=$$((build + 1)); \
+	/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $$new" Resources/Info.plist; \
+	/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $$newbuild" Resources/Info.plist; \
+	echo "==> version $$cur -> $$new   (build $$build -> $$newbuild)"; \
+	echo "    commit & push to main to release: git commit -am \"Release v$$new\" && git push"
+endef
+
+bump_patch: ## Bumps patch version x.y.(Z+1) in Info.plist
+	$(call bump_version,patch)
+
+bump_minor: ## Bumps minor version x.(Y+1).0 in Info.plist
+	$(call bump_version,minor)
+
+bump_major: ## Bumps major version (X+1).0.0 in Info.plist
+	$(call bump_version,major)
