@@ -8,7 +8,7 @@ struct OnboardingView: View {
 
     @State private var connected = HookInstaller.isInstalled
     @State private var loginEnabled = LoginItem.isEnabled
-    @State private var keychainGranted = false
+    @AppStorage("keychainGranted") private var keychainGranted: Bool = false
     @AppStorage("keychainDenied") private var keychainDenied: Bool = false
 
     // Sequential confirmation prompts shown when Get Started is tapped
@@ -49,8 +49,10 @@ struct OnboardingView: View {
         .alert("Allow keychain access?", isPresented: $showKeychainPrompt) {
             Button("Allow") {
                 Task {
-                    let granted = await UsageFetcher.fetch() != nil
-                    keychainGranted = granted
+                    // Result is driven by the keychain read inside fetch(), which
+                    // updates `keychainGranted` directly — don't gate it on the
+                    // network round-trip succeeding.
+                    _ = await UsageFetcher.fetch()
                     onClose()
                 }
             }
@@ -187,8 +189,10 @@ struct OnboardingView: View {
                                     keychainDenied = false
                                 }
                                 Task {
-                                    let granted = await UsageFetcher.fetch() != nil
-                                    keychainGranted = granted
+                                    // `keychainGranted` is updated by the keychain
+                                    // read inside fetch(), so the badge flips on its
+                                    // own when access is allowed.
+                                    _ = await UsageFetcher.fetch()
                                 }
                             } label: {
                                 Label(
